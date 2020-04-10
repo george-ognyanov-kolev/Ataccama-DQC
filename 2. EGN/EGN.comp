@@ -1,0 +1,274 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<purity-config xmlns:comm="http://www.ataccama.com/purity/comment" version="12.3.0.ga-2019-02-04">
+	<references/>
+	<component-mappings>
+		<propertyMappings/>
+	</component-mappings>
+
+<!-- (Alter Format) --><step mode="NORMAL" className="com.ataccama.dqc.tasks.flow.AlterFormat" disabled="false" id="Alter Format">
+		<properties>
+			<addedColumns>
+				<addedColumn expression="trashnonDigits(src_egn)" name="pur_egn" type="STRING"/>
+			</addedColumns>
+			<removedColumns/>
+		</properties>
+		<visual-constraints layout="vertical" bounds="24,120,-1,-1"/>
+	</step>
+	<connection className="com.ataccama.dqc.model.elements.connections.StandardFlowConnection" disabled="false">
+		<source endpoint="out" step="Alter Format"/>
+		<target endpoint="in" step="Alter Format 2"/>
+		<visual-constraints>
+			<bendpoints/>
+		</visual-constraints>
+	</connection>
+
+
+
+<!-- (Alter Format 2) --><step mode="NORMAL" className="com.ataccama.dqc.tasks.flow.AlterFormat" disabled="false" id="Alter Format 2">
+		<properties>
+			<addedColumns>
+				<addedColumn name="weight_egn" type="INTEGER">
+					<expression>tointeger(substr(pur_egn,0,1))*2 + 
+tointeger(substr(pur_egn,1,1))*4 + 
+tointeger(substr(pur_egn,2,1))*8 + 
+tointeger(substr(pur_egn,3,1))*5 + 
+tointeger(substr(pur_egn,4,1))*10 + 
+tointeger(substr(pur_egn,5,1))*9 + 
+tointeger(substr(pur_egn,6,1))*7 + 
+tointeger(substr(pur_egn,7,1))*3 + 
+tointeger(substr(pur_egn,8,1))*6 </expression>
+					<comm:comment>Всяка от първите девет цифри се умножава по съответното ѝ тегло (виж таблицата) и резултатите се сумират;</comm:comment>
+				</addedColumn>
+				<addedColumn name="length_egn" type="STRING"/>
+				<addedColumn name="date_egn" type="STRING"/>
+				<addedColumn name="weight_check" type="STRING"/>
+				<addedColumn name="summary" type="STRING"/>
+				<addedColumn name="std_egn" type="STRING"/>
+			</addedColumns>
+			<removedColumns/>
+		</properties>
+		<visual-constraints layout="vertical" bounds="24,216,-1,-1"/>
+	</step>
+	<connection className="com.ataccama.dqc.model.elements.connections.StandardFlowConnection" disabled="false">
+		<source endpoint="out" step="Alter Format 2"/>
+		<target endpoint="in" step="Column Assigner 2"/>
+		<visual-constraints>
+			<bendpoints/>
+		</visual-constraints>
+	</connection>
+
+
+
+<!-- (Column Assigner 2) --><step mode="NORMAL" className="com.ataccama.dqc.tasks.expressions.ColumnAssigner" disabled="false" id="Column Assigner 2">
+		<properties>
+			<assignments>
+				<assignment expression="iif(length(pur_egn) = 10, &quot;Валидна_дължина_ЕГН&quot;, &quot;Невалидна_дължина_ЕГН&quot;)" column="length_egn">
+					<scorer>
+						<scoringEntries>
+							<scoringEntry explain="false" score="0" explainAs="CA_CHANGED" key="CA_CHANGED"/>
+						</scoringEntries>
+					</scorer>
+					<comm:comment>Единният граждански номер (съкратено ЕГН, е-ге-не) представлява 10-цифрено число</comm:comment>
+				</assignment>
+				<assignment column="date_egn">
+					<expression>iif
+(
+(substr(pur_egn,0,2) &gt; &#39;00&#39; and substr(pur_egn,0,2) &lt; &#39;99&#39;) and 
+(substr(pur_egn,2,2) &gt; &#39;00&#39;and substr(pur_egn,2,2) &lt;= &#39;12&#39;) and 
+(substr(pur_egn,4,2) &gt; &#39;0&#39; and substr(pur_egn,4,2) &lt;= &#39;31&#39;),
+ &quot;Валидна_дата_ЕГН&quot;,
+		iif(
+		(substr(pur_egn,0,2) &gt; &#39;00&#39; and substr(pur_egn,0,2) &lt;= &#39;19&#39;) and 
+		(substr(pur_egn,2,2) &gt; &#39;40&#39; and substr(pur_egn,2,2) &lt;= &#39;52&#39;) and 
+		(substr(pur_egn,4,2) &gt; &#39;0&#39; and substr(pur_egn,4,2) &lt;= &#39;31&#39;),
+		 &quot;Валидна_дата_ЕГН&quot;,  &quot;Невалидна_дата_ЕГН&quot;)
+ )</expression>
+					<scorer>
+						<scoringEntries>
+							<scoringEntry explain="false" score="0" explainAs="CA_CHANGED" key="CA_CHANGED"/>
+						</scoringEntries>
+					</scorer>
+					<comm:comment>Тъй като за годината на раждане са отделени само две цифри, могат да се кодират единствено годините между 1900 и 1999. Останалите години се представят по следния начин:за родените преди 1 януари 1900 г. към месеца се прибавя числото 20,за родените след 31 декември 1999 г. до 31 декември 2099 г. към месеца се прибавя числото 40.</comm:comment>
+				</assignment>
+				<assignment column="weight_check">
+					<expression>iif(
+(weight_egn - ((floor(weight_egn/11))*11)&gt;0 and (weight_egn - ((floor(weight_egn/11))*11)&lt;=10)), &quot;Валиден_сбор_тежест_ЕГН&quot;, &quot;Невалиден_сбор_тежест_ЕГН&quot;
+)
+
+</expression>
+					<scorer>
+						<scoringEntries>
+							<scoringEntry explain="false" score="0" explainAs="CA_CHANGED" key="CA_CHANGED"/>
+						</scoringEntries>
+					</scorer>
+					<comm:comment>Десетата цифра е контролна и се изчислява по следния алгоритъм:Всяка от първите девет цифри се умножава по съответното ѝ тегло (виж таблицата) и резултатите се сумират;Получената сума се дели на 11 с остатък;Ако остатъкът от делението е по-малък от 10, тогава той се взема като контролна цифра, иначе за контролна се взема цифрата 0.</comm:comment>
+				</assignment>
+				<assignment column="summary">
+					<expression>iif(
+length_egn = &quot;Валидна_дължина_ЕГН&quot; AND 
+date_egn = &quot;Валидна_дата_ЕГН&quot; AND 
+weight_check = &quot;Валиден_сбор_тежест_ЕГН&quot;, &quot;ЕГН_Номерът_Валидиран&quot;, 
+&quot;ЕГН_Номерът_НЕ_Е_Валидиран&quot;)</expression>
+					<scorer>
+						<scoringEntries>
+							<scoringEntry explain="false" score="0" explainAs="CA_CHANGED" key="CA_CHANGED"/>
+						</scoringEntries>
+					</scorer>
+				</assignment>
+				<assignment expression="iif (summary = &quot;ЕГН_Номерът_Валидиран&quot;, pur_egn, &quot;INVALID_EGN2&quot;)" column="std_egn">
+					<scorer>
+						<scoringEntries>
+							<scoringEntry explain="false" score="0" explainAs="CA_CHANGED" key="CA_CHANGED"/>
+						</scoringEntries>
+					</scorer>
+				</assignment>
+			</assignments>
+		</properties>
+		<visual-constraints layout="vertical" bounds="24,312,-1,-1"/>
+	</step>
+	<connection className="com.ataccama.dqc.model.elements.connections.StandardFlowConnection" disabled="false">
+		<source endpoint="out" step="Column Assigner 2"/>
+		<target endpoint="in" step="out"/>
+		<visual-constraints>
+			<bendpoints/>
+		</visual-constraints>
+	</connection>
+
+
+
+<!-- (DQ_Tasks_Cutomer_Data) --><step mode="NORMAL" className="com.ataccama.dqc.tasks.io.text.read.TextFileReader" disabled="true" id="DQ_Tasks_Cutomer_Data">
+		<properties lineMaxReadLength="65536" fileName="../_data/DQ_Tasks_Cutomer_Data.csv" fieldSeparator="|" stringQualifierEscape="&quot;" numberOfLinesInFooter="0" compression="NONE" encoding="UTF-8" lineSeparator="\r\n" stringQualifier="&quot;" numberOfLinesInHeader="1">
+			<columns>
+				<textReaderColumn name="ID" ignore="false" type="INTEGER">
+					<dataFormatParameters decimalSeparator="." thousandsSeparator=","/>
+				</textReaderColumn>
+				<textReaderColumn name="src_name" ignore="false" type="STRING"/>
+				<textReaderColumn name="src_egn" ignore="false" type="STRING"/>
+				<textReaderColumn name="src_gender" ignore="false" type="STRING"/>
+				<textReaderColumn name="src_addess" ignore="false" type="STRING"/>
+				<textReaderColumn name="src_phone" ignore="false" type="STRING"/>
+				<textReaderColumn name="last_update" ignore="false" type="DATETIME">
+					<dataFormatParameters dateTimeFormat="yyyy-MM-dd HH:mm:ss" dateFormatLocale="en_US"/>
+				</textReaderColumn>
+			</columns>
+			<dataFormatParameters falseValue="false" dateTimeFormat="yy-MM-dd HH:mm:ss" decimalSeparator="." dayFormat="yy-MM-dd" trueValue="true" dateFormatLocale="en_US" thousandsSeparator=""/>
+			<errorHandlingStrategy rejectFileName="rejected.txt">
+				<errorInstructions>
+					<errorInstruction dataStrategy="READ_POSSIBLE" errorType="EXTRA_DATA" putToLog="true" putToReject="false"/>
+					<errorInstruction dataStrategy="STOP" errorType="LONG_LINE" putToLog="true" putToReject="true"/>
+					<errorInstruction dataStrategy="STOP" errorType="PROCESSING_ERROR" putToLog="true" putToReject="false"/>
+					<errorInstruction dataStrategy="READ_POSSIBLE" errorType="INVALID_DATE" putToLog="true" putToReject="false"/>
+					<errorInstruction dataStrategy="READ_POSSIBLE" errorType="SHORT_LINE" putToLog="true" putToReject="true"/>
+					<errorInstruction dataStrategy="NULL_VALUE" errorType="UNPARSABLE_FIELD" putToLog="true" putToReject="false"/>
+				</errorInstructions>
+			</errorHandlingStrategy>
+			<shadowColumns/>
+		</properties>
+		<visual-constraints layout="vertical" bounds="960,24,-1,-1"/>
+	</step>
+
+
+
+<!-- (DQ_Tasks_Cutomer_Data_out) --><step mode="NORMAL" className="com.ataccama.dqc.tasks.io.text.write.TextFileWriter" disabled="true" id="DQ_Tasks_Cutomer_Data_out">
+		<properties writeHeader="true" fileName="../name-egn-2.csv" fieldSeparator=";" generateMetadata="true" stringQualifierEscape="&quot;" writeAllColumns="false" compression="NONE" encoding="UTF-8" lineSeparator="\r\n" stringQualifier="&quot;" useStringQualifierOnAllColumns="false">
+			<columns>
+				<textWriterColumn name="ID"/>
+				<textWriterColumn name="src_name"/>
+				<textWriterColumn name="src_egn"/>
+				<textWriterColumn name="src_gender"/>
+				<textWriterColumn name="pur_egn"/>
+				<textWriterColumn name="weight_egn"/>
+				<textWriterColumn name="length_egn"/>
+				<textWriterColumn name="date_egn"/>
+				<textWriterColumn name="weight_check"/>
+				<textWriterColumn name="summary"/>
+				<textWriterColumn name="std_egn"/>
+			</columns>
+			<dataFormatParameters falseValue="false" dateTimeFormat="yyyy-MM-dd HH:mm:ss" decimalSeparator="." dayFormat="yyyy-MM-dd" trueValue="true" dateFormatLocale="en_US" thousandsSeparator=""/>
+		</properties>
+		<visual-constraints layout="vertical" bounds="960,408,-1,-1"/>
+	</step>
+
+
+
+<!-- (in) --><step mode="NORMAL" className="com.ataccama.dqc.tasks.common.usersteps.io.InputStep" disabled="false" id="in">
+		<properties>
+			<columns>
+				<columnDef name="ID" type="INTEGER"/>
+				<columnDef name="src_name" type="STRING"/>
+				<columnDef name="src_egn" type="STRING"/>
+				<columnDef name="src_gender" type="STRING"/>
+				<columnDef name="src_addess" type="STRING"/>
+				<columnDef name="src_phone" type="STRING"/>
+				<columnDef name="last_update" type="DATETIME"/>
+				<columnDef name="std_name" type="STRING"/>
+				<columnDef name="std_title" type="STRING"/>
+				<columnDef name="std_first_name" type="STRING"/>
+				<columnDef name="std_middle_name" type="STRING"/>
+				<columnDef name="std_last_name" type="STRING"/>
+				<columnDef name="exp1-transliterate" type="STRING"/>
+				<columnDef name="exp2-strip-titles" type="STRING"/>
+				<columnDef name="exp3-regex-matching" type="STRING"/>
+			</columns>
+			<shadowColumns/>
+		</properties>
+		<visual-constraints layout="vertical" bounds="24,24,-1,-1"/>
+	</step>
+	<connection className="com.ataccama.dqc.model.elements.connections.StandardFlowConnection" disabled="false">
+		<source endpoint="out" step="in"/>
+		<target endpoint="in" step="Alter Format"/>
+		<visual-constraints>
+			<bendpoints/>
+		</visual-constraints>
+	</connection>
+
+
+
+<!-- (out) --><step mode="NORMAL" className="com.ataccama.dqc.tasks.common.usersteps.io.OutputStep" disabled="false" id="out">
+		<properties>
+			<requiredColumns>
+				<requiredColumn name="ID" type="INTEGER"/>
+				<requiredColumn name="src_name" type="STRING"/>
+				<requiredColumn name="src_egn" type="STRING"/>
+				<requiredColumn name="pur_egn" type="STRING"/>
+				<requiredColumn name="length_egn" type="STRING"/>
+				<requiredColumn name="weight_check" type="STRING"/>
+				<requiredColumn name="date_egn" type="STRING"/>
+				<requiredColumn name="weight_egn" type="INTEGER"/>
+				<requiredColumn name="std_egn" type="STRING"/>
+				<requiredColumn name="summary" type="STRING"/>
+			</requiredColumns>
+			<comm:comment>Data Format Parameters		ID	
+Data Format Parameters		src_egn	
+Data Format Parameters		pur_egn	
+Data Format Parameters		length_egn	
+Data Format Parameters		weight_check	
+Data Format Parameters		date_egn	
+Data Format Parameters		weight_egn	
+Data Format Parameters		std_egn	
+Data Format Parameters		summary</comm:comment>
+		</properties>
+		<visual-constraints layout="vertical" bounds="24,408,-1,-1"/>
+	</step>
+
+
+
+<modelComment backgroundColor="255,255,180" borderColor="183,183,0" bounds="216,216,385,51" foregroundColor="51,51,51">Calculate sum for first 9 digits via score-table --&gt; weight_egn</modelComment>
+
+
+
+<modelComment backgroundColor="255,255,180" borderColor="183,183,0" bounds="216,120,385,51" foregroundColor="51,51,51">Remove noise and shitty characters from src_egn --&gt; pur_egn</modelComment>
+
+
+
+<modelComment backgroundColor="255,255,180" borderColor="183,183,0" bounds="216,312,385,49" foregroundColor="51,51,51">length_egn; date_egn; weight_check || summary for all three</modelComment>
+
+
+
+<modelComment backgroundColor="255,255,180" borderColor="183,183,0" bounds="216,24,649,49" foregroundColor="51,51,51">Вземам (7) src колони + (8) нови колони от NAMES.comp</modelComment>
+
+
+
+<modelComment backgroundColor="255,255,180" borderColor="183,183,0" bounds="216,408,649,49" foregroundColor="51,51,51">Вземам (7) src колони + (8) нови колони от NAMES.comp + (7) нови колони от EGN.comp</modelComment>
+
+</purity-config>

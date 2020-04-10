@@ -1,0 +1,330 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<purity-config version="12.3.0.ga-2019-02-04">
+	<references/>
+	<component-mappings>
+		<propertyMappings/>
+	</component-mappings>
+
+<!-- (Alter Format) --><step mode="NORMAL" className="com.ataccama.dqc.tasks.flow.AlterFormat" disabled="false" id="Alter Format">
+		<properties>
+			<addedColumns>
+				<addedColumn expression="upper(src_name)" name="std_name" type="STRING"/>
+				<addedColumn name="std_tittles" type="STRING"/>
+				<addedColumn name="std_first_name" type="STRING"/>
+				<addedColumn name="std_middle_name" type="STRING"/>
+				<addedColumn name="std_last_name" type="STRING"/>
+				<addedColumn name="exp1-transliterate" type="STRING"/>
+				<addedColumn name="exp2-strip-titles" type="STRING"/>
+				<addedColumn name="exp3-regex-matching" type="STRING"/>
+			</addedColumns>
+			<removedColumns/>
+		</properties>
+		<visual-constraints layout="vertical" bounds="24,120,-1,-1"/>
+	</step>
+	<connection className="com.ataccama.dqc.model.elements.connections.StandardFlowConnection" disabled="false">
+		<source endpoint="out" step="Alter Format"/>
+		<target endpoint="in" step="Transliterate "/>
+		<visual-constraints>
+			<bendpoints/>
+		</visual-constraints>
+	</connection>
+
+
+
+<!-- (DQ_Tasks_Cutomer_Data) --><step mode="NORMAL" className="com.ataccama.dqc.tasks.io.text.read.TextFileReader" disabled="true" id="DQ_Tasks_Cutomer_Data">
+		<properties lineMaxReadLength="65536" fileName="../_data/DQ_Tasks_Cutomer_Data.csv" fieldSeparator="|" stringQualifierEscape="&quot;" numberOfLinesInFooter="0" compression="NONE" encoding="UTF-8" lineSeparator="\r\n" stringQualifier="&quot;" numberOfLinesInHeader="1">
+			<columns>
+				<textReaderColumn name="ID" ignore="false" type="INTEGER">
+					<dataFormatParameters decimalSeparator="." thousandsSeparator=","/>
+				</textReaderColumn>
+				<textReaderColumn name="src_name" ignore="false" type="STRING"/>
+				<textReaderColumn name="src_egn" ignore="false" type="STRING"/>
+				<textReaderColumn name="src_gender" ignore="false" type="STRING"/>
+				<textReaderColumn name="src_addess" ignore="false" type="STRING"/>
+				<textReaderColumn name="src_phone" ignore="false" type="STRING"/>
+				<textReaderColumn name="last_update" ignore="false" type="DATETIME">
+					<dataFormatParameters dateTimeFormat="yyyy-MM-dd HH:mm:ss" dateFormatLocale="en_US"/>
+				</textReaderColumn>
+			</columns>
+			<dataFormatParameters falseValue="false" dateTimeFormat="yy-MM-dd HH:mm:ss" decimalSeparator="." dayFormat="yy-MM-dd" trueValue="true" dateFormatLocale="en_US" thousandsSeparator=""/>
+			<errorHandlingStrategy rejectFileName="rejected.txt">
+				<errorInstructions>
+					<errorInstruction dataStrategy="READ_POSSIBLE" errorType="EXTRA_DATA" putToLog="true" putToReject="false"/>
+					<errorInstruction dataStrategy="STOP" errorType="LONG_LINE" putToLog="true" putToReject="true"/>
+					<errorInstruction dataStrategy="STOP" errorType="PROCESSING_ERROR" putToLog="true" putToReject="false"/>
+					<errorInstruction dataStrategy="READ_POSSIBLE" errorType="INVALID_DATE" putToLog="true" putToReject="false"/>
+					<errorInstruction dataStrategy="READ_POSSIBLE" errorType="SHORT_LINE" putToLog="true" putToReject="true"/>
+					<errorInstruction dataStrategy="NULL_VALUE" errorType="UNPARSABLE_FIELD" putToLog="true" putToReject="false"/>
+				</errorInstructions>
+			</errorHandlingStrategy>
+			<shadowColumns/>
+		</properties>
+		<visual-constraints layout="vertical" bounds="792,24,-1,-1"/>
+	</step>
+
+
+
+<!-- (DQ_Tasks_Cutomer_Data_out) --><step mode="NORMAL" className="com.ataccama.dqc.tasks.io.text.write.TextFileWriter" disabled="true" id="DQ_Tasks_Cutomer_Data_out">
+		<properties writeHeader="true" fileName="./names.csv" fieldSeparator=";" generateMetadata="true" stringQualifierEscape="&quot;" writeAllColumns="false" compression="NONE" encoding="UTF-8" lineSeparator="\r\n" stringQualifier="&quot;" useStringQualifierOnAllColumns="false">
+			<columns>
+				<textWriterColumn name="ID"/>
+				<textWriterColumn name="src_name"/>
+				<textWriterColumn name="std_name"/>
+				<textWriterColumn name="exp1-transliterate"/>
+				<textWriterColumn name="std_tittles"/>
+				<textWriterColumn name="exp2-strip-titles"/>
+				<textWriterColumn name="std_first_name"/>
+				<textWriterColumn name="std_middle_name"/>
+				<textWriterColumn name="std_last_name"/>
+				<textWriterColumn name="exp3-regex-matching"/>
+			</columns>
+			<dataFormatParameters falseValue="false" dateTimeFormat="yyyy-MM-dd HH:mm:ss" decimalSeparator="." dayFormat="yyyy-MM-dd" trueValue="true" dateFormatLocale="en_US" thousandsSeparator=""/>
+		</properties>
+		<visual-constraints layout="vertical" bounds="792,504,-1,-1"/>
+	</step>
+
+
+
+<!-- (Regex Matching) --><step mode="NORMAL" className="com.ataccama.dqc.tasks.clean.RegexMatchingAlgorithm" disabled="false" id="Regex Matching">
+		<properties expression="std_name" appendRegexNameColumnSeparator=" " appendRegexNameColumn="false">
+			<noMatchColumns/>
+			<regExpressions>
+				<regExpression partialMatch="true" ignoreCase="true" name="first_name" pattern="([а-яА-Я]+)\s([а-яА-Я]+)\s([а-яА-Я]+)" multiplicative="false">
+					<resultColumns>
+						<regexOutputColumn substitution="$1" name="std_first_name"/>
+						<regexOutputColumn substitution="$2" name="std_middle_name"/>
+						<regexOutputColumn substitution="$3" name="std_last_name"/>
+					</resultColumns>
+				</regExpression>
+			</regExpressions>
+			<scorer explanationColumn="exp3-regex-matching">
+				<scoringEntries>
+					<scoringEntry explain="true" score="0" explainAs="Регекса_празен" key="STN_NULL"/>
+					<scoringEntry explain="true" score="0" explainAs="Регекса_мачна" key="STN_MATCHED"/>
+					<scoringEntry explain="true" score="0" explainAs="Регекса_не_мачна" key="STN_NOT_MATCHED"/>
+				</scoringEntries>
+			</scorer>
+		</properties>
+		<visual-constraints layout="vertical" bounds="24,408,-1,-1"/>
+	</step>
+	<connection className="com.ataccama.dqc.model.elements.connections.StandardFlowConnection" disabled="false">
+		<source endpoint="out" step="Regex Matching"/>
+		<target endpoint="in" step="out"/>
+		<visual-constraints>
+			<bendpoints/>
+		</visual-constraints>
+	</connection>
+
+
+
+<!-- (Strip Titles) --><step mode="NORMAL" className="com.ataccama.dqc.tasks.clean.StripTitlesAlgorithm" disabled="false" id="Strip Titles">
+		<properties minWordCount="0" titlesOut="std_tittles" in="std_name" preserveUnsupportedChars="true" titleLookupFileName="./lkptitles.lkp" separator="" out="std_name">
+			<scorer explanationColumn="exp2-strip-titles">
+				<scoringEntries>
+					<scoringEntry explain="true" score="0" explainAs="Извлечени_титли" key="ST_CHANGED"/>
+				</scoringEntries>
+			</scorer>
+			<tokenizer whiteSpaceDefinition="[:white:]">
+				<types>
+					<tokenType tokenStartCharacters="[:letter:]" tokenCharacters="[:letter:]"/>
+					<tokenType tokenStartCharacters="[:digit:]" tokenCharacters="[:digit:]"/>
+				</types>
+			</tokenizer>
+		</properties>
+		<visual-constraints layout="vertical" bounds="24,312,-1,-1"/>
+	</step>
+	<connection className="com.ataccama.dqc.model.elements.connections.StandardFlowConnection" disabled="false">
+		<source endpoint="out" step="Strip Titles"/>
+		<target endpoint="in" step="Regex Matching"/>
+		<visual-constraints>
+			<bendpoints/>
+		</visual-constraints>
+	</connection>
+
+
+
+<!-- (Transliterate ) --><step mode="NORMAL" className="com.ataccama.dqc.tasks.clean.transliterate.TransliterateAlgorithm" disabled="false" id="Transliterate ">
+		<properties>
+			<columns>
+				<fromColumnToColumn from="std_name" to="std_name">
+					<scorer explanationColumn="exp1-transliterate">
+						<scoringEntries>
+							<scoringEntry explain="true" score="0" explainAs="Празни_имена" key="TLT_NULL"/>
+							<scoringEntry explain="true" score="0" explainAs="Променени_имена" key="TLT_CHANGED"/>
+						</scoringEntries>
+					</scorer>
+				</fromColumnToColumn>
+			</columns>
+			<rules>
+				<substitutionRule from="^"/>
+				<substitutionRule from="&amp;"/>
+				<substitutionRule from="("/>
+				<substitutionRule from=")"/>
+				<substitutionRule from="*"/>
+				<substitutionRule from="+"/>
+				<substitutionRule from="="/>
+				<substitutionRule from="_"/>
+				<substitutionRule from="/"/>
+				<substitutionRule from="\"/>
+				<substitutionRule from="&quot;"/>
+				<substitutionRule from="&#39;"/>
+				<substitutionRule from=":"/>
+				<substitutionRule from=";"/>
+				<substitutionRule from="&gt;"/>
+				<substitutionRule from="&lt;"/>
+				<substitutionRule from=","/>
+				<substitutionRule from="?"/>
+				<substitutionRule from="№"/>
+				<substitutionRule from="["/>
+				<substitutionRule from="]"/>
+				<substitutionRule from="{"/>
+				<substitutionRule from="}"/>
+				<substitutionRule from="|"/>
+				<substitutionRule from="1"/>
+				<substitutionRule from="2"/>
+				<substitutionRule from="3"/>
+				<substitutionRule from="4"/>
+				<substitutionRule from="5"/>
+				<substitutionRule from="6"/>
+				<substitutionRule from="7"/>
+				<substitutionRule from="8"/>
+				<substitutionRule from="9"/>
+				<substitutionRule from="0"/>
+				<substitutionRule from="~"/>
+				<substitutionRule from="!"/>
+				<substitutionRule from="`"/>
+				<substitutionRule from="@"/>
+				<substitutionRule from="#"/>
+				<substitutionRule from="$"/>
+				<substitutionRule from="%"/>
+				<substitutionRule from="A" to="А"/>
+				<substitutionRule from="B" to="Б"/>
+				<substitutionRule from="C" to="Ц"/>
+				<substitutionRule from="D" to="Д"/>
+				<substitutionRule from="E" to="Е"/>
+				<substitutionRule from="F" to="Ф"/>
+				<substitutionRule from="G" to="Г"/>
+				<substitutionRule from="H" to="Х"/>
+				<substitutionRule from="I" to="И"/>
+				<substitutionRule from="J" to="Й"/>
+				<substitutionRule from="K" to="К"/>
+				<substitutionRule from="L" to="Л"/>
+				<substitutionRule from="M" to="М"/>
+				<substitutionRule from="N" to="Н"/>
+				<substitutionRule from="O" to="О"/>
+				<substitutionRule from="P" to="П"/>
+				<substitutionRule from="Q" to="Я"/>
+				<substitutionRule from="R" to="Р"/>
+				<substitutionRule from="S" to="С"/>
+				<substitutionRule from="T" to="Т"/>
+				<substitutionRule from="U" to="У"/>
+				<substitutionRule from="V" to="В"/>
+				<substitutionRule from="W" to="В"/>
+				<substitutionRule from="X" to="Х"/>
+				<substitutionRule from="Y" to="Ъ"/>
+				<substitutionRule from="Z" to="З"/>
+				<substitutionRule from="AY" to="АЙ"/>
+				<substitutionRule from="JU" to="Ю"/>
+				<substitutionRule from="CH" to="Ч"/>
+				<substitutionRule from="SHT" to="Щ"/>
+				<substitutionRule from="SHCH" to="Щ"/>
+				<substitutionRule from="SH" to="Ш"/>
+				<substitutionRule from="IO" to="ЙО"/>
+				<substitutionRule from="YO" to="ЬО"/>
+				<substitutionRule from="JO" to="ЙО"/>
+				<substitutionRule from="DZH" to="ДЖ"/>
+				<substitutionRule from="ZH" to="Ж"/>
+				<substitutionRule from="IU" to="Ю"/>
+				<substitutionRule from="YU" to="Ю"/>
+				<substitutionRule from="KH" to="Х"/>
+				<substitutionRule from="TS" to="Ц"/>
+				<substitutionRule from="YA" to="Я"/>
+				<substitutionRule from="JA" to="Я"/>
+				<substitutionRule from="IA" to="Я"/>
+			</rules>
+		</properties>
+		<visual-constraints layout="vertical" bounds="24,216,-1,-1"/>
+	</step>
+	<connection className="com.ataccama.dqc.model.elements.connections.StandardFlowConnection" disabled="false">
+		<source endpoint="out" step="Transliterate "/>
+		<target endpoint="in" step="Strip Titles"/>
+		<visual-constraints>
+			<bendpoints/>
+		</visual-constraints>
+	</connection>
+
+
+
+<!-- (in) --><step mode="NORMAL" className="com.ataccama.dqc.tasks.common.usersteps.io.InputStep" disabled="false" id="in">
+		<properties>
+			<columns>
+				<columnDef name="ID" type="INTEGER"/>
+				<columnDef name="src_name" type="STRING"/>
+				<columnDef name="src_egn" type="STRING"/>
+				<columnDef name="src_gender" type="STRING"/>
+				<columnDef name="src_addess" type="STRING"/>
+				<columnDef name="src_phone" type="STRING"/>
+				<columnDef name="last_update" type="DATETIME"/>
+			</columns>
+			<shadowColumns/>
+		</properties>
+		<visual-constraints layout="vertical" bounds="24,24,-1,-1"/>
+	</step>
+	<connection className="com.ataccama.dqc.model.elements.connections.StandardFlowConnection" disabled="false">
+		<source endpoint="out" step="in"/>
+		<target endpoint="in" step="Alter Format"/>
+		<visual-constraints>
+			<bendpoints/>
+		</visual-constraints>
+	</connection>
+
+
+
+<!-- (out) --><step mode="NORMAL" className="com.ataccama.dqc.tasks.common.usersteps.io.OutputStep" disabled="false" id="out">
+		<properties>
+			<requiredColumns>
+				<requiredColumn name="ID" type="INTEGER"/>
+				<requiredColumn name="src_name" type="STRING"/>
+				<requiredColumn name="src_egn" type="STRING"/>
+				<requiredColumn name="src_gender" type="STRING"/>
+				<requiredColumn name="src_addess" type="STRING"/>
+				<requiredColumn name="src_phone" type="STRING"/>
+				<requiredColumn name="last_update" type="DATETIME"/>
+				<requiredColumn name="std_name" type="STRING"/>
+				<requiredColumn name="exp1-transliterate" type="STRING"/>
+				<requiredColumn name="std_tittles" type="STRING"/>
+				<requiredColumn name="exp2-strip-titles" type="STRING"/>
+				<requiredColumn name="std_first_name" type="STRING"/>
+				<requiredColumn name="std_middle_name" type="STRING"/>
+				<requiredColumn name="std_last_name" type="STRING"/>
+				<requiredColumn name="exp3-regex-matching" type="STRING"/>
+			</requiredColumns>
+		</properties>
+		<visual-constraints layout="vertical" bounds="24,504,-1,-1"/>
+	</step>
+
+
+
+<modelComment backgroundColor="255,255,180" borderColor="183,183,0" bounds="192,24,385,49" foregroundColor="51,51,51">Вземам (7) src колони </modelComment>
+
+
+
+<modelComment backgroundColor="255,255,180" borderColor="183,183,0" bounds="192,120,385,49" foregroundColor="51,51,51">src_name CAPITALIZE ALL в std_name + добавям колони</modelComment>
+
+
+
+<modelComment backgroundColor="255,255,180" borderColor="183,183,0" bounds="192,216,385,49" foregroundColor="51,51,51">Преобразувам Latin --&gt; Cyrillic букви в std_name</modelComment>
+
+
+
+<modelComment backgroundColor="255,255,180" borderColor="183,183,0" bounds="192,312,385,49" foregroundColor="51,51,51">Извличам титлите от std_name във std_titles колоната</modelComment>
+
+
+
+<modelComment backgroundColor="255,255,180" borderColor="183,183,0" bounds="192,408,385,49" foregroundColor="51,51,51">Извличам имената от std_name към std_first_name, std_middle_name, std_last_name RegExp.</modelComment>
+
+
+
+<modelComment backgroundColor="255,255,180" borderColor="183,183,0" bounds="192,504,385,49" foregroundColor="51,51,51">Вземам (7) src колони + (8) нови колони от NAMES.comp</modelComment>
+
+</purity-config>

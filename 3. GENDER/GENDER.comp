@@ -1,0 +1,360 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<purity-config version="12.3.0.ga-2019-02-04">
+	<references/>
+	<component-mappings>
+		<propertyMappings/>
+	</component-mappings>
+
+<!-- (Alter Format) --><step mode="NORMAL" className="com.ataccama.dqc.tasks.flow.AlterFormat" disabled="false" id="Alter Format">
+		<properties>
+			<addedColumns>
+				<addedColumn expression="trashnondigits(src_gender)" name="pur_gender" type="STRING"/>
+				<addedColumn name="std_gender" type="STRING"/>
+				<addedColumn name="check_gender" type="STRING"/>
+				<addedColumn name="exp5-gender-assigned" type="STRING"/>
+				<addedColumn name="exp6-gender-assigned2" type="STRING"/>
+				<addedColumn name="exp7-gender-transliterate" type="STRING"/>
+			</addedColumns>
+			<removedColumns/>
+		</properties>
+		<visual-constraints layout="vertical" bounds="24,96,-1,-1"/>
+	</step>
+	<connection className="com.ataccama.dqc.model.elements.connections.StandardFlowConnection" disabled="false">
+		<source endpoint="out" step="Alter Format"/>
+		<target endpoint="in" step="Column Assigner"/>
+		<visual-constraints>
+			<bendpoints/>
+		</visual-constraints>
+	</connection>
+
+
+
+<!-- (Alter Format 2) --><step mode="NORMAL" className="com.ataccama.dqc.tasks.flow.AlterFormat" disabled="false" id="Alter Format 2">
+		<properties>
+			<addedColumns>
+				<addedColumn name="exp8_compare_egn_gender" type="STRING"/>
+				<addedColumn name="scoring" type="INTEGER"/>
+			</addedColumns>
+			<removedColumns/>
+		</properties>
+		<visual-constraints layout="vertical" bounds="24,312,-1,-1"/>
+	</step>
+	<connection className="com.ataccama.dqc.model.elements.connections.StandardFlowConnection" disabled="false">
+		<source endpoint="out" step="Alter Format 2"/>
+		<target endpoint="in" step="Simple Scoring"/>
+		<visual-constraints>
+			<bendpoints/>
+		</visual-constraints>
+	</connection>
+
+
+
+<!-- (Column Assigner) --><step mode="NORMAL" className="com.ataccama.dqc.tasks.expressions.ColumnAssigner" disabled="false" id="Column Assigner">
+		<properties>
+			<assignments>
+				<assignment expression="trashnonLetters(src_gender)" column="pur_gender">
+					<scorer explanationColumn="exp5-gender-assigned">
+						<scoringEntries>
+							<scoringEntry explain="false" score="0" explainAs="CA_CHANGED" key="CA_CHANGED"/>
+						</scoringEntries>
+					</scorer>
+				</assignment>
+				<assignment expression="iif(summary=&quot;ЕГН_Номерът_Валидиран&quot;, iif(((toInteger(substr(pur_egn,8,1))%2))=0, &quot;М&quot;, &quot;Ж&quot;),&quot;INVALID_EGN3&quot;)" column="check_gender">
+					<scorer explanationColumn="exp6-gender-assigned2">
+						<scoringEntries>
+							<scoringEntry explain="false" score="0" explainAs="CA_CHANGED" key="CA_CHANGED"/>
+						</scoringEntries>
+					</scorer>
+				</assignment>
+			</assignments>
+		</properties>
+		<visual-constraints layout="vertical" bounds="24,168,-1,-1"/>
+	</step>
+	<connection className="com.ataccama.dqc.model.elements.connections.StandardFlowConnection" disabled="false">
+		<source endpoint="out" step="Column Assigner"/>
+		<target endpoint="in" step="Transliterate"/>
+		<visual-constraints>
+			<bendpoints/>
+		</visual-constraints>
+	</connection>
+
+
+
+<!-- (Component) --><component mode="NORMAL" disabled="true" id="Component">
+		<properties fileName="../2. EGN/EGN.comp">
+			<mappings>
+				<mappingEndPoint name="in">
+					<columnMappings>
+						<columnsMapping to="ID"/>
+						<columnsMapping to="src_name"/>
+						<columnsMapping to="src_egn"/>
+						<columnsMapping to="src_gender"/>
+						<columnsMapping to="src_addess"/>
+						<columnsMapping to="src_phone"/>
+						<columnsMapping to="last_update"/>
+						<columnsMapping to="std_name"/>
+						<columnsMapping to="std_title"/>
+						<columnsMapping to="std_first_name"/>
+						<columnsMapping to="std_middle_name"/>
+						<columnsMapping to="std_last_name"/>
+						<columnsMapping to="exp1-transliterate"/>
+						<columnsMapping to="exp2-strip-titles"/>
+						<columnsMapping to="exp3-regex-matching"/>
+					</columnMappings>
+				</mappingEndPoint>
+				<mappingEndPoint name="out">
+					<columnMappings>
+						<columnsMapping to="pur_egn"/>
+						<columnsMapping to="weight_egn"/>
+						<columnsMapping to="length_egn"/>
+						<columnsMapping to="date_egn"/>
+						<columnsMapping to="weight_check"/>
+						<columnsMapping to="summary"/>
+						<columnsMapping to="std_egn"/>
+					</columnMappings>
+				</mappingEndPoint>
+			</mappings>
+			<parameters/>
+		</properties>
+		<visual-constraints layout="vertical" bounds="768,96,-1,-1"/>
+	</component>
+
+
+
+<!-- (DQ_Tasks_Cutomer_Data) --><step mode="NORMAL" className="com.ataccama.dqc.tasks.io.text.read.TextFileReader" disabled="true" id="DQ_Tasks_Cutomer_Data">
+		<properties lineMaxReadLength="65536" fileName="../_data/DQ_Tasks_Cutomer_Data.csv" fieldSeparator="|" stringQualifierEscape="&quot;" numberOfLinesInFooter="0" compression="NONE" encoding="UTF-8" lineSeparator="\r\n" stringQualifier="&quot;" numberOfLinesInHeader="1">
+			<columns>
+				<textReaderColumn name="ID" ignore="false" type="INTEGER">
+					<dataFormatParameters decimalSeparator="." thousandsSeparator=","/>
+				</textReaderColumn>
+				<textReaderColumn name="src_name" ignore="false" type="STRING"/>
+				<textReaderColumn name="src_egn" ignore="false" type="STRING"/>
+				<textReaderColumn name="src_gender" ignore="false" type="STRING"/>
+				<textReaderColumn name="src_addess" ignore="false" type="STRING"/>
+				<textReaderColumn name="src_phone" ignore="false" type="STRING"/>
+				<textReaderColumn name="last_update" ignore="false" type="DATETIME">
+					<dataFormatParameters dateTimeFormat="yyyy-MM-dd HH:mm:ss" dateFormatLocale="en_US"/>
+				</textReaderColumn>
+			</columns>
+			<dataFormatParameters falseValue="false" dateTimeFormat="yy-MM-dd HH:mm:ss" decimalSeparator="." dayFormat="yy-MM-dd" trueValue="true" dateFormatLocale="en_US" thousandsSeparator=""/>
+			<errorHandlingStrategy rejectFileName="rejected.txt">
+				<errorInstructions>
+					<errorInstruction dataStrategy="READ_POSSIBLE" errorType="EXTRA_DATA" putToLog="true" putToReject="false"/>
+					<errorInstruction dataStrategy="STOP" errorType="LONG_LINE" putToLog="true" putToReject="true"/>
+					<errorInstruction dataStrategy="STOP" errorType="PROCESSING_ERROR" putToLog="true" putToReject="false"/>
+					<errorInstruction dataStrategy="READ_POSSIBLE" errorType="INVALID_DATE" putToLog="true" putToReject="false"/>
+					<errorInstruction dataStrategy="READ_POSSIBLE" errorType="SHORT_LINE" putToLog="true" putToReject="true"/>
+					<errorInstruction dataStrategy="NULL_VALUE" errorType="UNPARSABLE_FIELD" putToLog="true" putToReject="false"/>
+				</errorInstructions>
+			</errorHandlingStrategy>
+			<shadowColumns/>
+		</properties>
+		<visual-constraints layout="vertical" bounds="912,96,-1,-1"/>
+	</step>
+
+
+
+<!-- (DQ_Tasks_Cutomer_Data_out) --><step mode="NORMAL" className="com.ataccama.dqc.tasks.io.text.write.TextFileWriter" disabled="true" id="DQ_Tasks_Cutomer_Data_out">
+		<properties writeHeader="true" fileName="./gender.csv" fieldSeparator=";" generateMetadata="true" stringQualifierEscape="&quot;" writeAllColumns="false" compression="NONE" encoding="UTF-8" lineSeparator="\r\n" stringQualifier="&quot;" useStringQualifierOnAllColumns="false">
+			<columns>
+				<textWriterColumn name="ID"/>
+				<textWriterColumn name="src_name"/>
+				<textWriterColumn name="src_gender"/>
+				<textWriterColumn name="pur_gender"/>
+				<textWriterColumn name="exp5-gender-assigned"/>
+				<textWriterColumn name="exp6-gender-assigned2"/>
+				<textWriterColumn name="std_gender"/>
+				<textWriterColumn name="exp7-gender-transliterate"/>
+				<textWriterColumn name="check_gender"/>
+				<textWriterColumn name="exp_comparison_EGN_Sex"/>
+				<textWriterColumn name="sco"/>
+				<textWriterColumn name="cio_egn"/>
+				<textWriterColumn name="std_gender"/>
+				<textWriterColumn name="cio_gender"/>
+			</columns>
+			<dataFormatParameters falseValue="false" dateTimeFormat="yyyy-MM-dd HH:mm:ss" decimalSeparator="." dayFormat="yyyy-MM-dd" trueValue="true" dateFormatLocale="en_US" thousandsSeparator=""/>
+		</properties>
+		<visual-constraints layout="vertical" bounds="912,384,-1,-1"/>
+	</step>
+
+
+
+<!-- (Simple Scoring) --><step mode="NORMAL" className="com.ataccama.dqc.tasks.scoring.SimpleScoring" disabled="false" id="Simple Scoring">
+		<properties defaultScoreColumn="scoring" defaultExplainColumn="exp8_compare_egn_gender">
+			<scoringCases>
+				<scoringCase score="0" condition="(check_gender = &quot;INVALID_EGN&quot;) and (std_gender = NULL)" scoreColumn="scoring" explanation="&quot;No_Info&quot;" explanationColumn="exp8_compare_egn_gender"/>
+				<scoringCase score="0" condition="(check_gender = &#39;М&#39;) and (std_gender = &#39;М&#39;)" scoreColumn="scoring" explanation="&quot;Gender_Valid&quot;" explanationColumn="exp8_compare_egn_gender"/>
+				<scoringCase score="0" condition="check_gender = &#39;Ж&#39; and std_gender = &#39;Ж&#39;" scoreColumn="scoring" explanation="&quot;Gender_Valid&quot;" explanationColumn="exp8_compare_egn_gender"/>
+				<scoringCase score="0" condition="check_gender = null and (std_gender= &quot;М&quot;or std_gender= &quot;Ж&quot;)" scoreColumn="scoring" explanation="&quot;Gender_from_sex&quot;" explanationColumn="exp8_compare_egn_gender"/>
+				<scoringCase score="0" condition="check_gender = &#39;М&#39; and std_gender != &#39;М&#39;" scoreColumn="scoring" explanation="&quot;Gender_Different_from_Inferred&quot;" explanationColumn="exp8_compare_egn_gender"/>
+				<scoringCase score="0" condition="check_gender != &#39;М&#39; and std_gender = &#39;М&#39;" scoreColumn="scoring" explanation="&quot;Gender_Different_from_Inferred&quot;" explanationColumn="exp8_compare_egn_gender"/>
+				<scoringCase score="0" condition="check_gender != &#39;Ж&#39; and std_gender = &#39;Ж&#39;" scoreColumn="scoring" explanation="&quot;Gender_Different_from_Inferred&quot;" explanationColumn="exp8_compare_egn_gender"/>
+				<scoringCase score="0" condition="check_gender = &#39;Ж&#39; and std_gender != &#39;Ж&#39;" scoreColumn="scoring" explanation="&quot;Gender_Different_from_Inferred&quot;" explanationColumn="exp8_compare_egn_gender"/>
+				<scoringCase score="0" condition="(check_gender = &#39;Ж&#39; or check_gender = &#39;М&#39;) and std_gender = null" scoreColumn="scoring" explanation="&quot;Gender_Infered&quot;" explanationColumn="exp8_compare_egn_gender"/>
+				<scoringCase score="0" condition="(check_gender = &quot;INVALID&quot; ) and std_gender = null" scoreColumn="scoring" explanation="&quot;Null&quot;" explanationColumn="exp8_compare_egn_gender"/>
+			</scoringCases>
+		</properties>
+		<visual-constraints layout="vertical" bounds="24,384,-1,-1"/>
+	</step>
+	<connection className="com.ataccama.dqc.model.elements.connections.StandardFlowConnection" disabled="false">
+		<source endpoint="out" step="Simple Scoring"/>
+		<target endpoint="in" step="out 2"/>
+		<visual-constraints>
+			<bendpoints/>
+		</visual-constraints>
+	</connection>
+
+
+
+<!-- (Transliterate) --><step mode="NORMAL" className="com.ataccama.dqc.tasks.clean.transliterate.TransliterateAlgorithm" disabled="false" id="Transliterate">
+		<properties>
+			<columns>
+				<fromColumnToColumn from="pur_gender" to="std_gender">
+					<scorer explanationColumn="exp7-gender-transliterate">
+						<scoringEntries>
+							<scoringEntry explain="true" score="0" explainAs="Полът_празен" key="TLT_NULL"/>
+							<scoringEntry explain="true" score="0" explainAs="Полът_променен" key="TLT_CHANGED"/>
+						</scoringEntries>
+					</scorer>
+				</fromColumnToColumn>
+			</columns>
+			<rules>
+				<substitutionRule from="MЪЖ" to="М"/>
+				<substitutionRule from="ЖЕНА" to="Ж"/>
+				<substitutionRule from="МЪЖ " to="М"/>
+				<substitutionRule from="ЖЕНА " to="Ж"/>
+				<substitutionRule from="мъж" to="М"/>
+				<substitutionRule from="жена" to="Ж"/>
+				<substitutionRule from="мъж " to="М"/>
+				<substitutionRule from="жена " to="Ж"/>
+			</rules>
+		</properties>
+		<visual-constraints layout="vertical" bounds="24,240,-1,-1"/>
+	</step>
+	<connection className="com.ataccama.dqc.model.elements.connections.StandardFlowConnection" disabled="false">
+		<source endpoint="out" step="Transliterate"/>
+		<target endpoint="in" step="Alter Format 2"/>
+		<visual-constraints>
+			<bendpoints/>
+		</visual-constraints>
+	</connection>
+
+
+
+<!-- (in) --><step mode="NORMAL" className="com.ataccama.dqc.tasks.common.usersteps.io.InputStep" disabled="false" id="in">
+		<properties>
+			<columns>
+				<columnDef name="ID" type="INTEGER"/>
+				<columnDef name="src_name" type="STRING"/>
+				<columnDef name="src_egn" type="STRING"/>
+				<columnDef name="src_gender" type="STRING"/>
+				<columnDef name="src_addess" type="STRING"/>
+				<columnDef name="src_phone" type="STRING"/>
+				<columnDef name="last_update" type="DATETIME"/>
+				<columnDef name="std_name" type="STRING"/>
+				<columnDef name="std_title" type="STRING"/>
+				<columnDef name="std_first_name" type="STRING"/>
+				<columnDef name="std_middle_name" type="STRING"/>
+				<columnDef name="std_last_name" type="STRING"/>
+				<columnDef name="exp1-transliterate" type="STRING"/>
+				<columnDef name="exp2-strip-titles" type="STRING"/>
+				<columnDef name="exp3-regex-matching" type="STRING"/>
+				<columnDef name="pur_egn" type="STRING"/>
+				<columnDef name="length_egn" type="STRING"/>
+				<columnDef name="weight_check" type="STRING"/>
+				<columnDef name="date_egn" type="STRING"/>
+				<columnDef name="weight_egn" type="INTEGER"/>
+				<columnDef name="std_egn" type="STRING"/>
+				<columnDef name="summary" type="STRING"/>
+			</columns>
+			<shadowColumns/>
+		</properties>
+		<visual-constraints layout="vertical" bounds="24,24,-1,-1"/>
+	</step>
+	<connection className="com.ataccama.dqc.model.elements.connections.StandardFlowConnection" disabled="false">
+		<source endpoint="out" step="in"/>
+		<target endpoint="in" step="Alter Format"/>
+		<visual-constraints>
+			<bendpoints/>
+		</visual-constraints>
+	</connection>
+
+
+
+<!-- (out) --><step mode="NORMAL" className="com.ataccama.dqc.tasks.io.text.write.TextFileWriter" disabled="true" id="out">
+		<properties writeHeader="true" fileName="./NAME_EGN_GENDER.csv" fieldSeparator=";" generateMetadata="true" stringQualifierEscape="&quot;" writeAllColumns="true" compression="NONE" encoding="UTF-8" lineSeparator="\r\n" stringQualifier="&quot;" useStringQualifierOnAllColumns="false">
+			<columns/>
+			<dataFormatParameters falseValue="false" dateTimeFormat="yyyy-MM-dd HH:mm:ss" decimalSeparator="." dayFormat="yyyy-MM-dd" trueValue="true" dateFormatLocale="en_US" thousandsSeparator=""/>
+		</properties>
+		<visual-constraints layout="vertical" bounds="768,384,-1,-1"/>
+	</step>
+
+
+
+<!-- (out 2) --><step mode="NORMAL" className="com.ataccama.dqc.tasks.common.usersteps.io.OutputStep" disabled="false" id="out 2">
+		<properties>
+			<requiredColumns>
+				<requiredColumn name="ID" type="INTEGER"/>
+				<requiredColumn name="src_name" type="STRING"/>
+				<requiredColumn name="src_egn" type="STRING"/>
+				<requiredColumn name="src_gender" type="STRING"/>
+				<requiredColumn name="src_addess" type="STRING"/>
+				<requiredColumn name="src_phone" type="STRING"/>
+				<requiredColumn name="last_update" type="DATETIME"/>
+				<requiredColumn name="std_name" type="STRING"/>
+				<requiredColumn name="std_title" type="STRING"/>
+				<requiredColumn name="std_first_name" type="STRING"/>
+				<requiredColumn name="std_middle_name" type="STRING"/>
+				<requiredColumn name="std_last_name" type="STRING"/>
+				<requiredColumn name="exp1-transliterate" type="STRING"/>
+				<requiredColumn name="exp2-strip-titles" type="STRING"/>
+				<requiredColumn name="exp3-regex-matching" type="STRING"/>
+				<requiredColumn name="pur_egn" type="STRING"/>
+				<requiredColumn name="length_egn" type="STRING"/>
+				<requiredColumn name="weight_check" type="STRING"/>
+				<requiredColumn name="date_egn" type="STRING"/>
+				<requiredColumn name="weight_egn" type="INTEGER"/>
+				<requiredColumn name="std_egn" type="STRING"/>
+				<requiredColumn name="summary" type="STRING"/>
+				<requiredColumn name="pur_gender" type="STRING"/>
+				<requiredColumn name="std_gender" type="STRING"/>
+				<requiredColumn name="check_gender" type="STRING"/>
+				<requiredColumn name="exp5-gender-assigned" type="STRING"/>
+				<requiredColumn name="exp6-gender-assigned2" type="STRING"/>
+				<requiredColumn name="exp7-gender-transliterate" type="STRING"/>
+				<requiredColumn name="exp8_compare_egn_gender" type="STRING"/>
+				<requiredColumn name="scoring" type="INTEGER"/>
+			</requiredColumns>
+		</properties>
+		<visual-constraints layout="vertical" bounds="24,456,-1,-1"/>
+	</step>
+
+
+
+<modelComment backgroundColor="255,255,180" borderColor="183,183,0" bounds="216,168,337,48" foregroundColor="51,51,51">Check gender using info from EGN component</modelComment>
+
+
+
+<modelComment backgroundColor="255,255,180" borderColor="183,183,0" bounds="216,24,889,49" foregroundColor="51,51,51">Вземам (7) src колони + (8) нови колони от NAMES.comp + (7) нови колони от EGN.comp</modelComment>
+
+
+
+<modelComment backgroundColor="255,255,180" borderColor="183,183,0" bounds="216,456,889,49" foregroundColor="51,51,51">Вземам (7) src колони + (8) нови колони от NAMES.comp + (7) нови колони от EGN.comp + (9) нови колони от GENDER.comp</modelComment>
+
+
+
+<modelComment backgroundColor="255,255,180" borderColor="183,183,0" bounds="216,240,337,48" foregroundColor="51,51,51">Transliterate src_gender M,F --&gt; std_gender</modelComment>
+
+
+
+<modelComment backgroundColor="255,255,180" borderColor="183,183,0" bounds="216,96,337,48" foregroundColor="51,51,51">Remove noise and shit on src_gender --&gt; pur_gender</modelComment>
+
+
+
+<modelComment backgroundColor="255,255,180" borderColor="183,183,0" bounds="216,384,337,48" foregroundColor="51,51,51">Check_gender = std_gender</modelComment>
+
+
+
+<modelComment backgroundColor="255,255,180" borderColor="183,183,0" bounds="216,312,337,48" foregroundColor="51,51,51">Добавям exp8_compare_egn_gender &amp; scoring колоните</modelComment>
+
+</purity-config>

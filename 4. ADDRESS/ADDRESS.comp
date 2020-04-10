@@ -1,0 +1,949 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<purity-config xmlns:comm="http://www.ataccama.com/purity/comment" version="12.3.0.ga-2019-02-04">
+	<references/>
+	<component-mappings>
+		<propertyMappings/>
+	</component-mappings>
+
+<!-- (Alter Format 2) --><step mode="NORMAL" className="com.ataccama.dqc.tasks.flow.AlterFormat" disabled="false" id="Alter Format 2">
+		<properties>
+			<addedColumns>
+				<addedColumn name="exp9-transliterate-address" type="STRING"/>
+				<addedColumn expression="upper(src_addess)" name="std_address" type="STRING"/>
+			</addedColumns>
+			<removedColumns/>
+		</properties>
+		<visual-constraints layout="vertical" bounds="24,120,-1,-1"/>
+	</step>
+	<connection className="com.ataccama.dqc.model.elements.connections.StandardFlowConnection" disabled="false">
+		<source endpoint="out" step="Alter Format 2"/>
+		<target endpoint="in" step="Transliterate "/>
+		<visual-constraints>
+			<bendpoints/>
+		</visual-constraints>
+	</connection>
+
+
+
+<!-- (Alter Format 3) --><step mode="NORMAL" className="com.ataccama.dqc.tasks.flow.AlterFormat" disabled="false" id="Alter Format 3">
+		<properties>
+			<addedColumns>
+				<addedColumn name="pur_zip" type="STRING"/>
+				<addedColumn name="pur_municipality_type" type="STRING"/>
+				<addedColumn name="pur_municipality_name" type="STRING"/>
+				<addedColumn name="pur_city_type" type="STRING"/>
+				<addedColumn name="pur_city_name" type="STRING"/>
+				<addedColumn name="pur_quarter_type" type="STRING"/>
+				<addedColumn name="pur_quarter_name" type="STRING"/>
+				<addedColumn name="pur_street_type" type="STRING"/>
+				<addedColumn name="pur_street_name" type="STRING"/>
+				<addedColumn name="pur_street_number" type="STRING"/>
+				<addedColumn name="pur_block" type="STRING"/>
+				<addedColumn name="pur_entrance" type="STRING"/>
+				<addedColumn name="pur_floor" type="STRING"/>
+				<addedColumn name="pur_apartment" type="STRING"/>
+				<addedColumn name="pur_extra_info" type="STRING"/>
+			</addedColumns>
+			<removedColumns/>
+		</properties>
+		<visual-constraints layout="vertical" bounds="24,312,-1,-1"/>
+	</step>
+	<connection className="com.ataccama.dqc.model.elements.connections.StandardFlowConnection" disabled="false">
+		<source endpoint="out" step="Alter Format 3"/>
+		<target endpoint="in" step="pur_zip"/>
+		<visual-constraints>
+			<bendpoints/>
+		</visual-constraints>
+	</connection>
+
+
+
+<!-- (Alter Format address) --><step mode="NORMAL" className="com.ataccama.dqc.tasks.flow.AlterFormat" disabled="false" id="Alter Format address">
+		<properties>
+			<addedColumns>
+				<addedColumn expression="pur_street_type + &quot; &quot; + pur_street_name + &quot; &quot; + pur_street_number" name="std_address2" type="STRING"/>
+				<addedColumn name="exp11-address-lookups" type="STRING"/>
+			</addedColumns>
+			<removedColumns/>
+		</properties>
+		<visual-constraints layout="vertical" bounds="1176,504,-1,-1"/>
+	</step>
+	<connection className="com.ataccama.dqc.model.elements.connections.StandardFlowConnection" disabled="false">
+		<source endpoint="out" step="Alter Format address"/>
+		<target endpoint="in" step="Lookup address"/>
+		<visual-constraints>
+			<bendpoints/>
+		</visual-constraints>
+	</connection>
+
+
+
+<!-- (Alter Format zip) --><step mode="NORMAL" className="com.ataccama.dqc.tasks.flow.AlterFormat" disabled="false" id="Alter Format zip">
+		<properties>
+			<addedColumns>
+				<addedColumn name="std_postcode" type="INTEGER"/>
+				<addedColumn expression="tointeger(pur_zip)" name="int_zip" type="INTEGER"/>
+				<addedColumn name="exp10-zip-lookups" type="STRING"/>
+			</addedColumns>
+			<removedColumns/>
+		</properties>
+		<visual-constraints layout="vertical" bounds="1176,312,-1,-1"/>
+	</step>
+	<connection className="com.ataccama.dqc.model.elements.connections.StandardFlowConnection" disabled="false">
+		<source endpoint="out" step="Alter Format zip"/>
+		<target endpoint="in" step="Lookup zip"/>
+		<visual-constraints>
+			<bendpoints/>
+		</visual-constraints>
+	</connection>
+
+
+
+<!-- (Lookup address) --><step mode="BYPASS" className="com.ataccama.dqc.tasks.clean.LookupAlgorithm" disabled="false" id="Lookup address">
+		<properties maxDifference="0" tableFileName="./lkpaddresses.lkp" prefix="false" foreignKeyColumn="std_address2">
+			<columns>
+				<columnAssign expression="lookup.key" name="std_address2"/>
+			</columns>
+			<scorer explanationColumn="exp11-address-lookups">
+				<scoringEntries>
+					<scoringEntry explain="true" score="0" explainAs="LKP_NULL_ID" key="LKP_NULL_ID"/>
+					<scoringEntry explain="true" score="0" explainAs="LKP_NOT_FOUND" key="LKP_NOT_FOUND"/>
+					<scoringEntry explain="true" score="0" explainAs="LKP_FOUND" key="LKP_FOUND"/>
+					<scoringEntry explain="true" score="0" explainAs="LKP_FOUND_DUPL" key="LKP_FOUND_DUPL"/>
+					<scoringEntry explain="true" score="0" explainAs="LKP_APPROX_USED" key="LKP_APPROX_USED"/>
+				</scoringEntries>
+			</scorer>
+			<selectBestMatch/>
+		</properties>
+		<visual-constraints layout="vertical" bounds="1176,600,-1,-1"/>
+	</step>
+	<connection className="com.ataccama.dqc.model.elements.connections.StandardFlowConnection" disabled="false">
+		<source endpoint="out" step="Lookup address"/>
+		<target endpoint="in" step="out"/>
+		<visual-constraints>
+			<bendpoints/>
+		</visual-constraints>
+	</connection>
+
+
+
+<!-- (Lookup zip) --><step mode="BYPASS" className="com.ataccama.dqc.tasks.clean.LookupAlgorithm" disabled="false" id="Lookup zip">
+		<properties maxDifference="0" tableFileName="../../9. Final_Task_2/Addresses/LKP.lkp" prefix="false" foreignKeyColumn="int_zip">
+			<columns>
+				<columnAssign expression="lookup.key" name="std_postcode"/>
+			</columns>
+			<scorer explanationColumn="exp10-zip-lookups">
+				<scoringEntries>
+					<scoringEntry explain="true" score="0" explainAs="LKP_NULL_ID" key="LKP_NULL_ID"/>
+					<scoringEntry explain="true" score="0" explainAs="LKP_NOT_FOUND" key="LKP_NOT_FOUND"/>
+					<scoringEntry explain="true" score="0" explainAs="LKP_FOUND" key="LKP_FOUND"/>
+					<scoringEntry explain="true" score="0" explainAs="LKP_FOUND_DUPL" key="LKP_FOUND_DUPL"/>
+					<scoringEntry explain="true" score="0" explainAs="LKP_APPROX_USED" key="LKP_APPROX_USED"/>
+				</scoringEntries>
+			</scorer>
+			<selectBestMatch/>
+		</properties>
+		<visual-constraints layout="vertical" bounds="1176,408,-1,-1"/>
+	</step>
+	<connection className="com.ataccama.dqc.model.elements.connections.StandardFlowConnection" disabled="false">
+		<source endpoint="out" step="Lookup zip"/>
+		<target endpoint="in" step="Alter Format address"/>
+		<visual-constraints>
+			<bendpoints/>
+		</visual-constraints>
+	</connection>
+
+
+
+<!-- (Take missing zips) --><step mode="NORMAL" className="com.ataccama.dqc.tasks.expressions.ColumnAssigner" disabled="false" id="Take missing zips">
+		<properties>
+			<assignments>
+				<assignment expression="iif (remain = null, std_address, remain)" column="remain">
+					<scorer>
+						<scoringEntries>
+							<scoringEntry explain="false" score="0" explainAs="CA_CHANGED" key="CA_CHANGED"/>
+						</scoringEntries>
+					</scorer>
+				</assignment>
+			</assignments>
+		</properties>
+		<visual-constraints layout="vertical" bounds="24,600,-1,-1"/>
+	</step>
+	<connection className="com.ataccama.dqc.model.elements.connections.StandardFlowConnection" disabled="false">
+		<source endpoint="out" step="Take missing zips"/>
+		<target endpoint="in" step="pur_apartment"/>
+		<visual-constraints>
+			<bendpoints/>
+		</visual-constraints>
+	</connection>
+
+
+
+<!-- (Transliterate ) --><step mode="NORMAL" className="com.ataccama.dqc.tasks.clean.transliterate.TransliterateAlgorithm" disabled="false" id="Transliterate ">
+		<properties>
+			<columns>
+				<fromColumnToColumn from="std_address" to="std_address">
+					<scorer explanationColumn="exp9-transliterate-address">
+						<scoringEntries>
+							<scoringEntry explain="true" score="0" explainAs="Липсва_Зададен_Адрес" key="TLT_NULL"/>
+							<scoringEntry explain="true" score="0" explainAs="Адрес_Transliterated" key="TLT_CHANGED"/>
+						</scoringEntries>
+					</scorer>
+				</fromColumnToColumn>
+			</columns>
+			<rules>
+				<substitutionRule from="SOFIA" to="СОФИЯ"/>
+				<substitutionRule from="CH" to="Ч"/>
+				<substitutionRule from="SHCH" to="Щ"/>
+				<substitutionRule from="SHT" to="Щ"/>
+				<substitutionRule from="SH" to="Ш"/>
+				<substitutionRule from="YA" to="Я"/>
+				<substitutionRule from="JA" to="Я"/>
+				<substitutionRule from="IO" to="ЙО"/>
+				<substitutionRule from="YO" to="ЬО"/>
+				<substitutionRule from="JO" to="ЙО"/>
+				<substitutionRule from="DZH" to="ДЖ"/>
+				<substitutionRule from="ZH" to="Ж"/>
+				<substitutionRule from="IU" to="Ю"/>
+				<substitutionRule from="YU" to="Ю"/>
+				<substitutionRule from="KH" to="Х"/>
+				<substitutionRule from="TS" to="Ц"/>
+				<substitutionRule from="A" to="А"/>
+				<substitutionRule from="B" to="Б"/>
+				<substitutionRule from="C" to="С"/>
+				<substitutionRule from="D" to="Д"/>
+				<substitutionRule from="E" to="Е"/>
+				<substitutionRule from="F" to="Ф"/>
+				<substitutionRule from="G" to="Г"/>
+				<substitutionRule from="H" to="Х"/>
+				<substitutionRule from="I" to="И"/>
+				<substitutionRule from="J" to="Й"/>
+				<substitutionRule from="K" to="К"/>
+				<substitutionRule from="L" to="Л"/>
+				<substitutionRule from="M" to="М"/>
+				<substitutionRule from="N" to="Н"/>
+				<substitutionRule from="O" to="О"/>
+				<substitutionRule from="P" to="П"/>
+				<substitutionRule from="Q" to="Я"/>
+				<substitutionRule from="R" to="Р"/>
+				<substitutionRule from="S" to="С"/>
+				<substitutionRule from="T" to="Т"/>
+				<substitutionRule from="U" to="У"/>
+				<substitutionRule from="V" to="В"/>
+				<substitutionRule from="W" to="В"/>
+				<substitutionRule from="X" to="КС"/>
+				<substitutionRule from="Y" to="Ъ"/>
+				<substitutionRule from="Z" to="З"/>
+				<substitutionRule from="AY" to="АЙ"/>
+				<substitutionRule from="JU" to="Ю"/>
+			</rules>
+		</properties>
+		<visual-constraints layout="vertical" bounds="24,216,-1,-1"/>
+	</step>
+	<connection className="com.ataccama.dqc.model.elements.connections.StandardFlowConnection" disabled="false">
+		<source endpoint="out" step="Transliterate "/>
+		<target endpoint="in" step="Alter Format 3"/>
+		<visual-constraints>
+			<bendpoints/>
+		</visual-constraints>
+	</connection>
+
+
+
+<!-- (Transliterate КВАРТАЛИ 2) --><step mode="NORMAL" className="com.ataccama.dqc.tasks.clean.transliterate.TransliterateAlgorithm" disabled="false" id="Transliterate КВАРТАЛИ 2">
+		<properties>
+			<columns>
+				<fromColumnToColumn from="pur_quarter_name" to="pur_quarter_name">
+					<scorer>
+						<scoringEntries>
+							<scoringEntry explain="true" score="0" explainAs="TLT_NULL" key="TLT_NULL"/>
+							<scoringEntry explain="true" score="0" explainAs="TLT_CHANGED" key="TLT_CHANGED"/>
+						</scoringEntries>
+					</scorer>
+				</fromColumnToColumn>
+			</columns>
+			<rules>
+				<substitutionRule from="ЛЮЛИН-Х" to="ЛЮЛИН 10"/>
+				<substitutionRule from="ЛЮЛИН ВІ" to="ЛЮЛИН 6"/>
+				<substitutionRule from="ЛЮЛИН ІІІ" to="ЛЮЛИН 3"/>
+				<substitutionRule from="ЛЮЛИН-ИВ" to="ЛЮЛИН 4"/>
+				<substitutionRule from="ЛЮЛИН-В" to="ЛЮЛИН 5"/>
+				<substitutionRule from="ДРУЖБА-ИИ" to="ДРУЖБА 2"/>
+				<substitutionRule from="ЛЮЛИН-ВИИ" to="ЛЮЛИН 7"/>
+				<substitutionRule from="МЛАДОСТ-И" to="МЛАДОСТ 1"/>
+				<substitutionRule from="МЛАДОСТ-ИИИ" to="МЛАДОСТ 3"/>
+				<substitutionRule from="МЛАДОСТ-ИВ" to="МЛАДОСТ 4"/>
+				<substitutionRule from="ДРАГАЛЕВЦИ ІІ " to="ДРАГАЛЕВЦИ 2"/>
+				<substitutionRule from="НАДЕЖДА И" to="НАДЕЖДА 1"/>
+				<substitutionRule from="НАДЕЖДА ИИ" to="НАДЕЖДА 2"/>
+				<substitutionRule from="НАДЕЖДА-В" to="НАДЕЖДА 5"/>
+				<substitutionRule from="ОБЕЛЯ-ІІ" to="ОБЕЛЯ 2"/>
+				<substitutionRule from="ОБЕЛЯ-ИИ" to="ОБЕЛЯ 2"/>
+				<substitutionRule from="ОБЕЛЯ-И" to="ОБЕЛЯ 1"/>
+				<substitutionRule from="НАДЕЖДА ИИИ" to="НАДЕЖДА 3"/>
+				<substitutionRule from="НАДЕЖДА ИВ" to="НАДЕЖДА 4"/>
+				<substitutionRule from="ЛЕВСКИ-В" to="ЛЕВСКИ 5"/>
+				<substitutionRule from="ДРУЖБА-ІІ" to="ДРУЖБА 2"/>
+				<substitutionRule from="ДРУЖБА И" to="ДРУЖБА 1"/>
+				<substitutionRule from="ДРУЖБА ІІ" to="ДРУЖБА 2"/>
+				<substitutionRule from="ДРУЖБА-1" to="ДРУЖБА 1"/>
+				<substitutionRule from="ДРУЖБА-И" to="ДРУЖБА 1"/>
+			</rules>
+		</properties>
+		<visual-constraints layout="vertical" bounds="696,696,-1,-1"/>
+	</step>
+	<connection className="com.ataccama.dqc.model.elements.connections.StandardFlowConnection" disabled="false">
+		<source endpoint="out" step="Transliterate КВАРТАЛИ 2"/>
+		<target endpoint="in" step="pur_municipality_type &amp; pur_municipality_name"/>
+		<visual-constraints>
+			<bendpoints/>
+		</visual-constraints>
+	</connection>
+
+
+
+<!-- (in) --><step mode="NORMAL" className="com.ataccama.dqc.tasks.common.usersteps.io.InputStep" disabled="false" id="in">
+		<properties>
+			<columns>
+				<columnDef name="ID" type="INTEGER"/>
+				<columnDef name="src_name" type="STRING"/>
+				<columnDef name="src_egn" type="STRING"/>
+				<columnDef name="src_gender" type="STRING"/>
+				<columnDef name="src_addess" type="STRING"/>
+				<columnDef name="src_phone" type="STRING"/>
+				<columnDef name="last_update" type="DATETIME"/>
+				<columnDef name="std_name" type="STRING"/>
+				<columnDef name="std_title" type="STRING"/>
+				<columnDef name="std_first_name" type="STRING"/>
+				<columnDef name="std_middle_name" type="STRING"/>
+				<columnDef name="std_last_name" type="STRING"/>
+				<columnDef name="exp1-transliterate" type="STRING"/>
+				<columnDef name="exp2-strip-titles" type="STRING"/>
+				<columnDef name="exp3-regex-matching" type="STRING"/>
+				<columnDef name="pur_egn" type="STRING"/>
+				<columnDef name="length_egn" type="STRING"/>
+				<columnDef name="weight_check" type="STRING"/>
+				<columnDef name="date_egn" type="STRING"/>
+				<columnDef name="weight_egn" type="INTEGER"/>
+				<columnDef name="std_egn" type="STRING"/>
+				<columnDef name="summary" type="STRING"/>
+				<columnDef name="pur_gender" type="STRING"/>
+				<columnDef name="std_gender" type="STRING"/>
+				<columnDef name="check_gender" type="STRING"/>
+				<columnDef name="exp5-gender-assigned" type="STRING"/>
+				<columnDef name="exp6-gender-assigned2" type="STRING"/>
+				<columnDef name="exp7-gender-transliterate" type="STRING"/>
+				<columnDef name="exp8-compare-egn-gender" type="STRING"/>
+				<columnDef name="sco" type="INTEGER"/>
+				<columnDef name="cio_gender" type="STRING"/>
+				<columnDef name="remain" type="STRING"/>
+			</columns>
+			<shadowColumns/>
+		</properties>
+		<visual-constraints layout="vertical" bounds="24,24,-1,-1"/>
+	</step>
+	<connection className="com.ataccama.dqc.model.elements.connections.StandardFlowConnection" disabled="false">
+		<source endpoint="out" step="in"/>
+		<target endpoint="in" step="Alter Format 2"/>
+		<visual-constraints>
+			<bendpoints/>
+		</visual-constraints>
+	</connection>
+
+
+
+<!-- (out) --><step mode="NORMAL" className="com.ataccama.dqc.tasks.common.usersteps.io.OutputStep" disabled="false" id="out">
+		<properties>
+			<requiredColumns>
+				<requiredColumn name="ID" type="INTEGER"/>
+				<requiredColumn name="src_name" type="STRING"/>
+				<requiredColumn name="src_egn" type="STRING"/>
+				<requiredColumn name="src_gender" type="STRING"/>
+				<requiredColumn name="src_addess" type="STRING"/>
+				<requiredColumn name="src_phone" type="STRING"/>
+				<requiredColumn name="last_update" type="DATETIME"/>
+				<requiredColumn name="std_name" type="STRING"/>
+				<requiredColumn name="std_title" type="STRING"/>
+				<requiredColumn name="std_first_name" type="STRING"/>
+				<requiredColumn name="std_middle_name" type="STRING"/>
+				<requiredColumn name="std_last_name" type="STRING"/>
+				<requiredColumn name="exp1-transliterate" type="STRING"/>
+				<requiredColumn name="exp2-strip-titles" type="STRING"/>
+				<requiredColumn name="exp3-regex-matching" type="STRING"/>
+				<requiredColumn name="pur_egn" type="STRING"/>
+				<requiredColumn name="length_egn" type="STRING"/>
+				<requiredColumn name="weight_check" type="STRING"/>
+				<requiredColumn name="date_egn" type="STRING"/>
+				<requiredColumn name="weight_egn" type="INTEGER"/>
+				<requiredColumn name="std_egn" type="STRING"/>
+				<requiredColumn name="summary" type="STRING"/>
+				<requiredColumn name="pur_gender" type="STRING"/>
+				<requiredColumn name="std_gender" type="STRING"/>
+				<requiredColumn name="check_gender" type="STRING"/>
+				<requiredColumn name="exp5-gender-assigned" type="STRING"/>
+				<requiredColumn name="exp6-gender-assigned2" type="STRING"/>
+				<requiredColumn name="exp7-gender-transliterate" type="STRING"/>
+				<requiredColumn name="exp8-compare-egn-gender" type="STRING"/>
+				<requiredColumn name="sco" type="INTEGER"/>
+				<requiredColumn name="cio_gender" type="STRING"/>
+				<requiredColumn name="std_address" type="STRING"/>
+				<requiredColumn name="exp9-transliterate-address" type="STRING"/>
+				<requiredColumn name="pur_zip" type="STRING"/>
+				<requiredColumn name="pur_municipality_type" type="STRING"/>
+				<requiredColumn name="pur_municipality_name" type="STRING"/>
+				<requiredColumn name="pur_city_type" type="STRING"/>
+				<requiredColumn name="pur_city_name" type="STRING"/>
+				<requiredColumn name="pur_quarter_type" type="STRING"/>
+				<requiredColumn name="pur_quarter_name" type="STRING"/>
+				<requiredColumn name="pur_street_type" type="STRING"/>
+				<requiredColumn name="pur_street_name" type="STRING"/>
+				<requiredColumn name="pur_street_number" type="STRING"/>
+				<requiredColumn name="pur_block" type="STRING"/>
+				<requiredColumn name="pur_entrance" type="STRING"/>
+				<requiredColumn name="pur_floor" type="STRING"/>
+				<requiredColumn name="pur_apartment" type="STRING"/>
+				<requiredColumn name="pur_extra_info" type="STRING"/>
+				<requiredColumn name="remain" type="STRING"/>
+				<requiredColumn name="std_postcode" type="INTEGER"/>
+				<requiredColumn name="int_zip" type="INTEGER"/>
+				<requiredColumn name="exp10-zip-lookups" type="STRING"/>
+				<requiredColumn name="std_address2" type="STRING"/>
+				<requiredColumn name="exp11-address-lookups" type="STRING"/>
+			</requiredColumns>
+		</properties>
+		<visual-constraints layout="vertical" bounds="24,792,-1,-1"/>
+	</step>
+
+
+
+<!-- (pur_apartment) --><step mode="NORMAL" className="com.ataccama.dqc.tasks.clean.RegexMatchingAlgorithm" disabled="false" id="pur_apartment">
+		<properties expression="remain" appendRegexNameColumnSeparator=" " appendRegexNameColumn="false">
+			<noMatchColumns/>
+			<regExpressions>
+				<regExpression partialMatch="true" ignoreCase="true" name="pur_apartment" pattern="(АП:([А-Я]*\d*)|АП\.\s?([А-Я]*\d*)|АП-([А-Я]*\d*))" multiplicative="false">
+					<resultColumns>
+						<regexOutputColumn substitution="$2 $3 $4" name="pur_apartment"/>
+						<regexOutputColumn substitution="$` $&#39;" name="remain"/>
+					</resultColumns>
+				</regExpression>
+			</regExpressions>
+			<scorer>
+				<scoringEntries>
+					<scoringEntry explain="true" score="0" explainAs="STN_NULL" key="STN_NULL"/>
+					<scoringEntry explain="true" score="0" explainAs="STN_MATCHED" key="STN_MATCHED"/>
+					<scoringEntry explain="true" score="0" explainAs="STN_NOT_MATCHED" key="STN_NOT_MATCHED"/>
+				</scoringEntries>
+			</scorer>
+		</properties>
+		<visual-constraints layout="vertical" bounds="24,696,-1,-1"/>
+	</step>
+	<connection className="com.ataccama.dqc.model.elements.connections.StandardFlowConnection" disabled="false">
+		<source endpoint="out" step="pur_apartment"/>
+		<target endpoint="in" step="squeezeSpaces(remain) pur_apartment"/>
+		<visual-constraints>
+			<bendpoints/>
+		</visual-constraints>
+	</connection>
+
+
+
+<!-- (pur_block) --><step mode="NORMAL" className="com.ataccama.dqc.tasks.clean.RegexMatchingAlgorithm" disabled="false" id="pur_block">
+		<properties expression="remain" appendRegexNameColumnSeparator=" " appendRegexNameColumn="false">
+			<noMatchColumns/>
+			<regExpressions>
+				<regExpression partialMatch="true" ignoreCase="true" name="pur_block" pattern="(БЛ:?\s?\.?\s?(\d*-?\d*[А-Я]*))" multiplicative="false">
+					<resultColumns>
+						<regexOutputColumn substitution="$2" name="pur_block"/>
+						<regexOutputColumn substitution="$` $&#39;" name="remain"/>
+					</resultColumns>
+				</regExpression>
+				<regExpression partialMatch="true" ignoreCase="true" name="pur_block" pattern="(СГР:?\s?\.?\s?(\d*-?\d*[А-Я]*))" multiplicative="false">
+					<resultColumns>
+						<regexOutputColumn substitution="$2" name="pur_block"/>
+						<regexOutputColumn substitution="$` $&#39;" name="remain"/>
+					</resultColumns>
+				</regExpression>
+			</regExpressions>
+			<scorer>
+				<scoringEntries>
+					<scoringEntry explain="true" score="0" explainAs="STN_NULL" key="STN_NULL"/>
+					<scoringEntry explain="true" score="0" explainAs="STN_MATCHED" key="STN_MATCHED"/>
+					<scoringEntry explain="true" score="0" explainAs="STN_NOT_MATCHED" key="STN_NOT_MATCHED"/>
+				</scoringEntries>
+			</scorer>
+		</properties>
+		<visual-constraints layout="vertical" bounds="336,600,-1,-1"/>
+	</step>
+	<connection className="com.ataccama.dqc.model.elements.connections.StandardFlowConnection" disabled="false">
+		<source endpoint="out" step="pur_block"/>
+		<target endpoint="in" step="squeezeSpaces(remain) pur_block"/>
+		<visual-constraints>
+			<bendpoints/>
+		</visual-constraints>
+	</connection>
+
+
+
+<!-- (pur_city_type & pur_city_name) --><step mode="NORMAL" className="com.ataccama.dqc.tasks.clean.RegexMatchingAlgorithm" disabled="false" id="pur_city_type &amp; pur_city_name">
+		<properties expression="remain" appendRegexNameColumnSeparator=" " appendRegexNameColumn="false">
+			<noMatchColumns/>
+			<regExpressions>
+				<regExpression partialMatch="true" ignoreCase="true" name="pur_city_type &amp; pur_city_name" pattern="(ГР\.\s?:?|С\.\s?)([А-Я]+\s[А-Я]+\s?|[А-Я]+)\s?\,?\s?(Ж\.?К\.?|КВ\.?|УЛ\.?\s?|БУЛ\.?)(?= УЛ\.| Ж\.К\.|)" multiplicative="false">
+					<resultColumns>
+						<regexOutputColumn substitution="$1" name="pur_city_type"/>
+						<regexOutputColumn substitution="$2" name="pur_city_name"/>
+						<regexOutputColumn substitution="$` $3 $&#39;" name="remain"/>
+					</resultColumns>
+					<comm:comment>(ГР\.?\s?:?|С\.?\s)([А-Я]*\s[А-Я]*)
+
+(ГР\.\s?:?|С\.\s?)([А-Я]*\s[А-Я]*)(Ж\.?К\.?|КВ\.?|УЛ\.|БУЛ\.)
+
+(ГР\.\s?:?|С\.\s?)([А-Я]+\s[А-Я]+|[А-Я]+)\s?\,?\s?(Ж\.?К\.?|КВ\.?|УЛ\.|БУЛ\.?)
+
+(ГР\.\s?:?|С\.\s?)([А-Я]+\s[А-Я]+|[А-Я]+)\s?\,?\s?(Ж\.?К\.?|КВ\.?|УЛ\.?\s?|БУЛ\.?)?
+
+(ГР\.\s?:?|С\.\s?)([А-Я]+\s[А-Я]+\s|[А-Я]+)\s?\,?\s?(Ж\.?К\.?|КВ\.?|УЛ\.?\s?|БУЛ\.?)? 12.04.13:26
+
+Lookarounds are the shit 
+
+(ГР\.\s?:?|С\.\s?)([А-Я]+\s[А-Я]+\s?|[А-Я]+)\s?\,?\s?(Ж\.?К\.?|КВ\.?|УЛ\.?\s?|БУЛ\.?)?</comm:comment>
+				</regExpression>
+			</regExpressions>
+			<scorer>
+				<scoringEntries>
+					<scoringEntry explain="true" score="0" explainAs="STN_NULL" key="STN_NULL"/>
+					<scoringEntry explain="true" score="0" explainAs="STN_MATCHED" key="STN_MATCHED"/>
+					<scoringEntry explain="true" score="0" explainAs="STN_NOT_MATCHED" key="STN_NOT_MATCHED"/>
+				</scoringEntries>
+			</scorer>
+		</properties>
+		<visual-constraints layout="vertical" bounds="696,120,-1,-1"/>
+	</step>
+	<connection className="com.ataccama.dqc.model.elements.connections.StandardFlowConnection" disabled="false">
+		<source endpoint="out" step="pur_city_type &amp; pur_city_name"/>
+		<target endpoint="in" step="squeezeSpaces(remain) pur_city_type &amp; pur_city_name"/>
+		<visual-constraints>
+			<bendpoints/>
+		</visual-constraints>
+	</connection>
+
+
+
+<!-- (pur_entrance) --><step mode="NORMAL" className="com.ataccama.dqc.tasks.clean.RegexMatchingAlgorithm" disabled="false" id="pur_entrance">
+		<properties expression="remain" appendRegexNameColumnSeparator=" " appendRegexNameColumn="false">
+			<noMatchColumns/>
+			<regExpressions>
+				<regExpression partialMatch="true" ignoreCase="true" name="pur_entrance" pattern="(ВХ:?\s?\.?\-?([А-Я]*-?\\?\d*-?\d*))" multiplicative="false">
+					<resultColumns>
+						<regexOutputColumn substitution="$2" name="pur_entrance"/>
+						<regexOutputColumn substitution="$` $&#39;" name="remain"/>
+					</resultColumns>
+				</regExpression>
+			</regExpressions>
+			<scorer>
+				<scoringEntries>
+					<scoringEntry explain="true" score="0" explainAs="STN_NULL" key="STN_NULL"/>
+					<scoringEntry explain="true" score="0" explainAs="STN_MATCHED" key="STN_MATCHED"/>
+					<scoringEntry explain="true" score="0" explainAs="STN_NOT_MATCHED" key="STN_NOT_MATCHED"/>
+				</scoringEntries>
+			</scorer>
+		</properties>
+		<visual-constraints layout="vertical" bounds="336,408,-1,-1"/>
+	</step>
+	<connection className="com.ataccama.dqc.model.elements.connections.StandardFlowConnection" disabled="false">
+		<source endpoint="out" step="pur_entrance"/>
+		<target endpoint="in" step="squeezeSpaces(remain) pur_entrance"/>
+		<visual-constraints>
+			<bendpoints/>
+		</visual-constraints>
+	</connection>
+
+
+
+<!-- (pur_floor) --><step mode="NORMAL" className="com.ataccama.dqc.tasks.clean.RegexMatchingAlgorithm" disabled="false" id="pur_floor">
+		<properties expression="remain" appendRegexNameColumnSeparator=" " appendRegexNameColumn="false">
+			<noMatchColumns/>
+			<regExpressions>
+				<regExpression partialMatch="true" ignoreCase="true" name="pur_floor" pattern="(\sЕТ?\s?\.?:?\s?(\d*))" multiplicative="false">
+					<resultColumns>
+						<regexOutputColumn substitution="$2" name="pur_floor"/>
+						<regexOutputColumn substitution="$` $&#39;" name="remain"/>
+					</resultColumns>
+					<comm:comment>(\sЕТ?\s?\.?:?(\d*))</comm:comment>
+				</regExpression>
+			</regExpressions>
+			<scorer>
+				<scoringEntries>
+					<scoringEntry explain="true" score="0" explainAs="STN_NULL" key="STN_NULL"/>
+					<scoringEntry explain="true" score="0" explainAs="STN_MATCHED" key="STN_MATCHED"/>
+					<scoringEntry explain="true" score="0" explainAs="STN_NOT_MATCHED" key="STN_NOT_MATCHED"/>
+				</scoringEntries>
+			</scorer>
+		</properties>
+		<visual-constraints layout="vertical" bounds="336,216,-1,-1"/>
+	</step>
+	<connection className="com.ataccama.dqc.model.elements.connections.StandardFlowConnection" disabled="false">
+		<source endpoint="out" step="pur_floor"/>
+		<target endpoint="in" step="squeezeSpaces(remain) pur_floor"/>
+		<visual-constraints>
+			<bendpoints/>
+		</visual-constraints>
+	</connection>
+
+
+
+<!-- (pur_municipality_type & pur_municipality_name) --><step mode="NORMAL" className="com.ataccama.dqc.tasks.clean.RegexMatchingAlgorithm" disabled="false" id="pur_municipality_type &amp; pur_municipality_name">
+		<properties expression="remain" appendRegexNameColumnSeparator=" " appendRegexNameColumn="false">
+			<noMatchColumns/>
+			<regExpressions>
+				<regExpression partialMatch="false" ignoreCase="true" name="pur_municipality_type &amp; pur_municipality_name" pattern="(ОБЩ\.?\s?)?([А-Я]+\s?[А-Я]+)" multiplicative="false">
+					<resultColumns>
+						<regexOutputColumn substitution="$1" name="pur_municipality_type"/>
+						<regexOutputColumn substitution="$2" name="pur_municipality_name"/>
+						<regexOutputColumn substitution="$` $&#39;" name="remain"/>
+					</resultColumns>
+				</regExpression>
+			</regExpressions>
+			<scorer>
+				<scoringEntries>
+					<scoringEntry explain="true" score="0" explainAs="STN_NULL" key="STN_NULL"/>
+					<scoringEntry explain="true" score="0" explainAs="STN_MATCHED" key="STN_MATCHED"/>
+					<scoringEntry explain="true" score="0" explainAs="STN_NOT_MATCHED" key="STN_NOT_MATCHED"/>
+				</scoringEntries>
+			</scorer>
+		</properties>
+		<visual-constraints layout="vertical" bounds="1176,120,-1,-1"/>
+	</step>
+	<connection className="com.ataccama.dqc.model.elements.connections.StandardFlowConnection" disabled="false">
+		<source endpoint="out" step="pur_municipality_type &amp; pur_municipality_name"/>
+		<target endpoint="in" step="squeezeSpaces(remain) pur_municipality_type &amp; pur_municipality_name"/>
+		<visual-constraints>
+			<bendpoints/>
+		</visual-constraints>
+	</connection>
+
+
+
+<!-- (pur_quarter_type & pur_quarter_name) --><step mode="NORMAL" className="com.ataccama.dqc.tasks.clean.RegexMatchingAlgorithm" disabled="false" id="pur_quarter_type &amp; pur_quarter_name">
+		<properties expression="remain" appendRegexNameColumnSeparator=" " appendRegexNameColumn="false">
+			<noMatchColumns/>
+			<regExpressions>
+				<regExpression partialMatch="true" ignoreCase="true" name="pur_quarter_type &amp; pur_quarter_name" pattern="(КВ\.?\s?|Ж\.?К\.?\s?)([А-Я]+\s?-?\W?\W?\W?[А-Я]*\s?\d?\d?\d?)" multiplicative="false">
+					<resultColumns>
+						<regexOutputColumn substitution="$1" name="pur_quarter_type"/>
+						<regexOutputColumn substitution="$2" name="pur_quarter_name"/>
+						<regexOutputColumn substitution="$` $&#39;" name="remain"/>
+					</resultColumns>
+					<comm:comment>(КВ\.?\s?|ЖК\.?\s?)([А-Я]+\s?[А-Я]*)
+
+(КВ\.?\s?|Ж\.?К\.?\s?)([А-Я]+\s?[А-Я]*\s?\d?\d?\d?) 12.04. 13:10</comm:comment>
+				</regExpression>
+			</regExpressions>
+			<scorer>
+				<scoringEntries>
+					<scoringEntry explain="true" score="0" explainAs="STN_NULL" key="STN_NULL"/>
+					<scoringEntry explain="true" score="0" explainAs="STN_MATCHED" key="STN_MATCHED"/>
+					<scoringEntry explain="true" score="0" explainAs="STN_NOT_MATCHED" key="STN_NOT_MATCHED"/>
+				</scoringEntries>
+			</scorer>
+		</properties>
+		<visual-constraints layout="vertical" bounds="696,504,-1,-1"/>
+	</step>
+	<connection className="com.ataccama.dqc.model.elements.connections.StandardFlowConnection" disabled="false">
+		<source endpoint="out" step="pur_quarter_type &amp; pur_quarter_name"/>
+		<target endpoint="in" step="squeezeSpaces(remain) pur_quarter_type &amp; pur_quarter_name"/>
+		<visual-constraints>
+			<bendpoints/>
+		</visual-constraints>
+	</connection>
+
+
+
+<!-- (pur_street_type & pur_street_name & pur_street_number) --><step mode="NORMAL" className="com.ataccama.dqc.tasks.clean.RegexMatchingAlgorithm" disabled="false" id="pur_street_type &amp; pur_street_name &amp; pur_street_number">
+		<properties expression="remain" appendRegexNameColumnSeparator=" " appendRegexNameColumn="false">
+			<noMatchColumns/>
+			<regExpressions>
+				<regExpression partialMatch="true" ignoreCase="true" name="1. pur_street_type &amp; pur_street_name &amp; pur_street_number" pattern="(Б?УЛ\.?\s*)([А-Я]+\.?\s?[А-Я]+\.?\s?|[А-Я]+\.?\s?[А-Я]+\.?)\s?(Н?:?№?:?\s?)(\d*)" multiplicative="false">
+					<resultColumns>
+						<regexOutputColumn substitution="$1" name="pur_street_type"/>
+						<regexOutputColumn substitution="$2" name="pur_street_name"/>
+						<regexOutputColumn substitution="$4" name="pur_street_number"/>
+						<regexOutputColumn substitution="$` $&#39;" name="remain"/>
+					</resultColumns>
+					<comm:comment>(Б?УЛ\.?\s*)(\d*-?Т?И?[А-Я]+\.?\s?[А-Я]+\.?\s?[А-Я]+)\s?№?:?\s?(\d*)</comm:comment>
+				</regExpression>
+			</regExpressions>
+			<scorer>
+				<scoringEntries>
+					<scoringEntry explain="true" score="0" explainAs="STN_NULL" key="STN_NULL"/>
+					<scoringEntry explain="true" score="0" explainAs="STN_MATCHED" key="STN_MATCHED"/>
+					<scoringEntry explain="true" score="0" explainAs="STN_NOT_MATCHED" key="STN_NOT_MATCHED"/>
+				</scoringEntries>
+			</scorer>
+		</properties>
+		<visual-constraints layout="vertical" bounds="696,312,-1,-1"/>
+	</step>
+	<connection className="com.ataccama.dqc.model.elements.connections.StandardFlowConnection" disabled="false">
+		<source endpoint="out" step="pur_street_type &amp; pur_street_name &amp; pur_street_number"/>
+		<target endpoint="in" step="squeezeSpaces(remain) pur_street_type &amp; pur_street_name &amp; pur_street_number"/>
+		<visual-constraints>
+			<bendpoints/>
+		</visual-constraints>
+	</connection>
+
+
+
+<!-- (pur_zip) --><step mode="NORMAL" className="com.ataccama.dqc.tasks.clean.RegexMatchingAlgorithm" disabled="false" id="pur_zip">
+		<properties expression="std_address" appendRegexNameColumnSeparator=" " appendRegexNameColumn="false">
+			<noMatchColumns/>
+			<regExpressions>
+				<regExpression partialMatch="true" ignoreCase="true" name="pur_zip" pattern="(\d{4}?)" multiplicative="false">
+					<resultColumns>
+						<regexOutputColumn substitution="$&amp;" name="pur_zip"/>
+						<regexOutputColumn substitution="$` $&#39;" name="remain"/>
+					</resultColumns>
+				</regExpression>
+			</regExpressions>
+			<scorer>
+				<scoringEntries>
+					<scoringEntry explain="true" score="0" explainAs="STN_NULL" key="STN_NULL"/>
+					<scoringEntry explain="true" score="0" explainAs="STN_MATCHED" key="STN_MATCHED"/>
+					<scoringEntry explain="true" score="0" explainAs="STN_NOT_MATCHED" key="STN_NOT_MATCHED"/>
+				</scoringEntries>
+			</scorer>
+		</properties>
+		<visual-constraints layout="vertical" bounds="24,408,-1,-1"/>
+	</step>
+	<connection className="com.ataccama.dqc.model.elements.connections.StandardFlowConnection" disabled="false">
+		<source endpoint="out" step="pur_zip"/>
+		<target endpoint="in" step="squeezeSpaces(remain) pur_zip"/>
+		<visual-constraints>
+			<bendpoints/>
+		</visual-constraints>
+	</connection>
+
+
+
+<!-- (squeezeSpaces(remain) pur_apartment) --><step mode="NORMAL" className="com.ataccama.dqc.tasks.expressions.ColumnAssigner" disabled="false" id="squeezeSpaces(remain) pur_apartment">
+		<properties>
+			<assignments>
+				<assignment expression="squeezeSpaces(remain)" column="remain">
+					<scorer>
+						<scoringEntries>
+							<scoringEntry explain="false" score="0" explainAs="CA_CHANGED" key="CA_CHANGED"/>
+						</scoringEntries>
+					</scorer>
+				</assignment>
+			</assignments>
+		</properties>
+		<visual-constraints layout="vertical" bounds="336,120,-1,-1"/>
+	</step>
+	<connection className="com.ataccama.dqc.model.elements.connections.StandardFlowConnection" disabled="false">
+		<source endpoint="out" step="squeezeSpaces(remain) pur_apartment"/>
+		<target endpoint="in" step="pur_floor"/>
+		<visual-constraints>
+			<bendpoints/>
+		</visual-constraints>
+	</connection>
+
+
+
+<!-- (squeezeSpaces(remain) pur_block) --><step mode="NORMAL" className="com.ataccama.dqc.tasks.expressions.ColumnAssigner" disabled="false" id="squeezeSpaces(remain) pur_block">
+		<properties>
+			<assignments>
+				<assignment expression="squeezeSpaces(remain)" column="remain">
+					<scorer>
+						<scoringEntries>
+							<scoringEntry explain="false" score="0" explainAs="CA_CHANGED" key="CA_CHANGED"/>
+						</scoringEntries>
+					</scorer>
+				</assignment>
+			</assignments>
+		</properties>
+		<visual-constraints layout="vertical" bounds="336,696,-1,-1"/>
+	</step>
+	<connection className="com.ataccama.dqc.model.elements.connections.StandardFlowConnection" disabled="false">
+		<source endpoint="out" step="squeezeSpaces(remain) pur_block"/>
+		<target endpoint="in" step="pur_city_type &amp; pur_city_name"/>
+		<visual-constraints>
+			<bendpoints/>
+		</visual-constraints>
+	</connection>
+
+
+
+<!-- (squeezeSpaces(remain) pur_city_type & pur_city_name) --><step mode="NORMAL" className="com.ataccama.dqc.tasks.expressions.ColumnAssigner" disabled="false" id="squeezeSpaces(remain) pur_city_type &amp; pur_city_name">
+		<properties>
+			<assignments>
+				<assignment expression="squeezeSpaces(remain)" column="remain">
+					<scorer>
+						<scoringEntries>
+							<scoringEntry explain="false" score="0" explainAs="CA_CHANGED" key="CA_CHANGED"/>
+						</scoringEntries>
+					</scorer>
+				</assignment>
+			</assignments>
+		</properties>
+		<visual-constraints layout="vertical" bounds="696,216,-1,-1"/>
+	</step>
+	<connection className="com.ataccama.dqc.model.elements.connections.StandardFlowConnection" disabled="false">
+		<source endpoint="out" step="squeezeSpaces(remain) pur_city_type &amp; pur_city_name"/>
+		<target endpoint="in" step="pur_street_type &amp; pur_street_name &amp; pur_street_number"/>
+		<visual-constraints>
+			<bendpoints/>
+		</visual-constraints>
+	</connection>
+
+
+
+<!-- (squeezeSpaces(remain) pur_entrance) --><step mode="NORMAL" className="com.ataccama.dqc.tasks.expressions.ColumnAssigner" disabled="false" id="squeezeSpaces(remain) pur_entrance">
+		<properties>
+			<assignments>
+				<assignment expression="squeezeSpaces(remain)" column="remain">
+					<scorer>
+						<scoringEntries>
+							<scoringEntry explain="false" score="0" explainAs="CA_CHANGED" key="CA_CHANGED"/>
+						</scoringEntries>
+					</scorer>
+				</assignment>
+			</assignments>
+		</properties>
+		<visual-constraints layout="vertical" bounds="336,504,-1,-1"/>
+	</step>
+	<connection className="com.ataccama.dqc.model.elements.connections.StandardFlowConnection" disabled="false">
+		<source endpoint="out" step="squeezeSpaces(remain) pur_entrance"/>
+		<target endpoint="in" step="pur_block"/>
+		<visual-constraints>
+			<bendpoints/>
+		</visual-constraints>
+	</connection>
+
+
+
+<!-- (squeezeSpaces(remain) pur_floor) --><step mode="NORMAL" className="com.ataccama.dqc.tasks.expressions.ColumnAssigner" disabled="false" id="squeezeSpaces(remain) pur_floor">
+		<properties>
+			<assignments>
+				<assignment expression="squeezeSpaces(remain)" column="remain">
+					<scorer>
+						<scoringEntries>
+							<scoringEntry explain="false" score="0" explainAs="CA_CHANGED" key="CA_CHANGED"/>
+						</scoringEntries>
+					</scorer>
+				</assignment>
+			</assignments>
+		</properties>
+		<visual-constraints layout="vertical" bounds="336,312,-1,-1"/>
+	</step>
+	<connection className="com.ataccama.dqc.model.elements.connections.StandardFlowConnection" disabled="false">
+		<source endpoint="out" step="squeezeSpaces(remain) pur_floor"/>
+		<target endpoint="in" step="pur_entrance"/>
+		<visual-constraints>
+			<bendpoints/>
+		</visual-constraints>
+	</connection>
+
+
+
+<!-- (squeezeSpaces(remain) pur_municipality_type & pur_municipality_name) --><step mode="NORMAL" className="com.ataccama.dqc.tasks.expressions.ColumnAssigner" disabled="false" id="squeezeSpaces(remain) pur_municipality_type &amp; pur_municipality_name">
+		<properties>
+			<assignments>
+				<assignment expression="squeezeSpaces(remain)" column="remain">
+					<scorer>
+						<scoringEntries>
+							<scoringEntry explain="false" score="0" explainAs="CA_CHANGED" key="CA_CHANGED"/>
+						</scoringEntries>
+					</scorer>
+				</assignment>
+			</assignments>
+		</properties>
+		<visual-constraints layout="vertical" bounds="1176,216,-1,-1"/>
+	</step>
+	<connection className="com.ataccama.dqc.model.elements.connections.StandardFlowConnection" disabled="false">
+		<source endpoint="out" step="squeezeSpaces(remain) pur_municipality_type &amp; pur_municipality_name"/>
+		<target endpoint="in" step="Alter Format zip"/>
+		<visual-constraints>
+			<bendpoints/>
+		</visual-constraints>
+	</connection>
+
+
+
+<!-- (squeezeSpaces(remain) pur_quarter_type & pur_quarter_name) --><step mode="NORMAL" className="com.ataccama.dqc.tasks.expressions.ColumnAssigner" disabled="false" id="squeezeSpaces(remain) pur_quarter_type &amp; pur_quarter_name">
+		<properties>
+			<assignments>
+				<assignment expression="squeezeSpaces(remain)" column="remain">
+					<scorer>
+						<scoringEntries>
+							<scoringEntry explain="false" score="0" explainAs="CA_CHANGED" key="CA_CHANGED"/>
+						</scoringEntries>
+					</scorer>
+				</assignment>
+			</assignments>
+		</properties>
+		<visual-constraints layout="vertical" bounds="696,600,-1,-1"/>
+	</step>
+	<connection className="com.ataccama.dqc.model.elements.connections.StandardFlowConnection" disabled="false">
+		<source endpoint="out" step="squeezeSpaces(remain) pur_quarter_type &amp; pur_quarter_name"/>
+		<target endpoint="in" step="Transliterate КВАРТАЛИ 2"/>
+		<visual-constraints>
+			<bendpoints/>
+		</visual-constraints>
+	</connection>
+
+
+
+<!-- (squeezeSpaces(remain) pur_street_type & pur_street_name & pur_street_number) --><step mode="NORMAL" className="com.ataccama.dqc.tasks.expressions.ColumnAssigner" disabled="false" id="squeezeSpaces(remain) pur_street_type &amp; pur_street_name &amp; pur_street_number">
+		<properties>
+			<assignments>
+				<assignment expression="squeezeSpaces(remain)" column="remain">
+					<scorer>
+						<scoringEntries>
+							<scoringEntry explain="false" score="0" explainAs="CA_CHANGED" key="CA_CHANGED"/>
+						</scoringEntries>
+					</scorer>
+				</assignment>
+			</assignments>
+		</properties>
+		<visual-constraints layout="vertical" bounds="696,408,-1,-1"/>
+	</step>
+	<connection className="com.ataccama.dqc.model.elements.connections.StandardFlowConnection" disabled="false">
+		<source endpoint="out" step="squeezeSpaces(remain) pur_street_type &amp; pur_street_name &amp; pur_street_number"/>
+		<target endpoint="in" step="pur_quarter_type &amp; pur_quarter_name"/>
+		<visual-constraints>
+			<bendpoints/>
+		</visual-constraints>
+	</connection>
+
+
+
+<!-- (squeezeSpaces(remain) pur_zip) --><step mode="NORMAL" className="com.ataccama.dqc.tasks.expressions.ColumnAssigner" disabled="false" id="squeezeSpaces(remain) pur_zip">
+		<properties>
+			<assignments>
+				<assignment expression="squeezeSpaces(remain)" column="remain">
+					<scorer>
+						<scoringEntries>
+							<scoringEntry explain="false" score="0" explainAs="CA_CHANGED" key="CA_CHANGED"/>
+						</scoringEntries>
+					</scorer>
+				</assignment>
+			</assignments>
+		</properties>
+		<visual-constraints layout="vertical" bounds="24,504,-1,-1"/>
+	</step>
+	<connection className="com.ataccama.dqc.model.elements.connections.StandardFlowConnection" disabled="false">
+		<source endpoint="out" step="squeezeSpaces(remain) pur_zip"/>
+		<target endpoint="in" step="Take missing zips"/>
+		<visual-constraints>
+			<bendpoints/>
+		</visual-constraints>
+	</connection>
+
+
+
+<modelComment backgroundColor="255,255,180" borderColor="183,183,0" bounds="240,24,841,49" foregroundColor="51,51,51">Вземам (7) src колони + (8) нови колони от NAMES.comp + (7) нови колони от EGN.comp + (9) нови колони от GENDER.comp</modelComment>
+
+
+
+<modelComment backgroundColor="255,255,180" borderColor="183,183,0" bounds="240,792,841,49" foregroundColor="51,51,51">Вземам (7) src колони + (8) нови колони от NAMES.comp + (7) нови колони от EGN.comp + (9) нови колони от GENDER.comp + (13) нови колони от ADDRESS.comp</modelComment>
+
+</purity-config>

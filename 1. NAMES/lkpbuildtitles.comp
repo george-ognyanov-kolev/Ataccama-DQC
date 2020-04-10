@@ -1,0 +1,41 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<purity-config version="12.3.0.ga-2019-02-04">
+	<references/>
+	<component-mappings>
+		<propertyMappings/>
+	</component-mappings>
+
+<!-- (Lookup Builder) --><step mode="NORMAL" className="com.ataccama.dqc.tasks.builders.LookupBuilder" disabled="false" id="Lookup Builder">
+		<properties bestDistanceIndex="false" fileName="./lkptitles.lkp" bidirectApproximativeIndex="false" duplicities="FIRST" approximativeIndex="false" compressed="false" key="from">
+			<additionalColumns>
+				<columnExprDef name="to"/>
+			</additionalColumns>
+			<matchingValue doRemoveDia="false" doUpperCase="false" doSqueezeWS="false" doRemoveRepeatedChars="false"/>
+			<userMetadata>
+				<items/>
+			</userMetadata>
+		</properties>
+		<visual-constraints layout="vertical" bounds="96,144,-1,-1"/>
+	</step>
+
+
+
+<!-- (Titles) --><step mode="NORMAL" className="com.ataccama.dqc.tasks.msoffice.excel.read.ExcelFileReader" disabled="false" id="Titles">
+		<properties fileName="../_data/Titles.xlsx" sheetName="Sheet1" startCell="A2" skipEmptyRows="false" useModelApi="false">
+			<columns>
+				<columnDef name="from" type="STRING"/>
+				<columnDef name="to" type="STRING"/>
+			</columns>
+			<shadowColumns/>
+		</properties>
+		<visual-constraints layout="vertical" bounds="96,48,-1,-1"/>
+	</step>
+	<connection className="com.ataccama.dqc.model.elements.connections.StandardFlowConnection" disabled="false">
+		<source endpoint="out" step="Titles"/>
+		<target endpoint="in" step="Lookup Builder"/>
+		<visual-constraints>
+			<bendpoints/>
+		</visual-constraints>
+	</connection>
+
+</purity-config>
